@@ -22,7 +22,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     struct StringLiterals {
         static let FindSurfaceMessage = "Find a flat surface to place the board"
         static let PlaceGridMessage = "Click on the grid to place the board"
+        
+        static let XPlayerTurnMessage = "X player's turn"
+        static let OPlayerTurnMessage = "O player's turn"
+        
+        static let XPlayerVictoryMessage = "X Won!"
+        static let OPlayerVictoryMessage = "O Won!"
+        
+        static let GameDrawTitleMessage = "It's a Draw!"
+        static let GameDrawtBodyMessage = "Would you like to reset the game?"
     }
+
     
     // MARK: - Outlets
     @IBOutlet var sceneView: ARSCNView!
@@ -65,13 +75,27 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                 ticTacToeGame = TicTacToe()
                 statusText = currentPlayer
             case .GameOver :
-                //Check if it is a draw or which player won
-                //Clean up, remove all board pieces
-                //Displaypopover to rset
-                break
+                
+                if ticTacToeGame.gameDraw {
+                    resetGame(withTitleMessage: StringLiterals.GameDrawTitleMessage, andBodyMessage: StringLiterals.GameDrawtBodyMessage)
+                } else {
+                    
+                    let winningPlayerString : String
+                    switch ticTacToeGame.currentPlayerTurn.oppositePiece {
+                        case .X :
+                            winningPlayerString = StringLiterals.XPlayerVictoryMessage
+                        default :
+                            winningPlayerString = StringLiterals.OPlayerVictoryMessage
+                    }
+                    
+                    resetGame(withTitleMessage: winningPlayerString, andBodyMessage: StringLiterals.GameDrawtBodyMessage)
+
+                }
+
             case .PlacingBoard :
-                statusText = StringLiterals.PlaceGridMessage
+                statusText = StringLiterals.FindSurfaceMessage
                 currentNode = nil
+                sceneView.scene = SCNScene()
                 currentAnchor = nil
             }
         }
@@ -81,9 +105,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         get {
             switch ticTacToeGame.currentPlayerTurn {
             case .X :
-                return "X's turn"
+                return StringLiterals.XPlayerTurnMessage
             default :
-                return "O's turn"
+                return StringLiterals.OPlayerTurnMessage
             }
         }
     }
@@ -212,6 +236,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         }
         
         
+    }
+    
+    // MARK: - Game reset functions
+    private func resetGame(withTitleMessage title : String, andBodyMessage body : String) {
+        
+        let drawGameAlertVC = UIAlertController(title: title, message: body, preferredStyle: .alert)
+        drawGameAlertVC.addAction(UIAlertAction(title: "Yes", style: .default, handler: {[unowned self] (_) in
+            self.currentGameState = .PlacingBoard
+        }))
+        drawGameAlertVC.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+        present(drawGameAlertVC, animated: true, completion: nil)
     }
     
 }
