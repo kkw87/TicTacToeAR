@@ -10,29 +10,7 @@ import UIKit
 import SceneKit
 import ARKit
 
-enum GameState {
-    case PlacingBoard
-    case InProgress
-    case GameOver
-}
-
-class ViewController: UIViewController, ARSCNViewDelegate {
-
-    // MARK: - Constants
-    struct StringLiterals {
-        static let FindSurfaceMessage = "Find a flat surface to place the board"
-        static let PlaceGridMessage = "Click on the grid to place the board"
-        
-        static let XPlayerTurnMessage = "X player's turn"
-        static let OPlayerTurnMessage = "O player's turn"
-        
-        static let XPlayerVictoryMessage = "X Won!"
-        static let OPlayerVictoryMessage = "O Won!"
-        
-        static let GameDrawTitleMessage = "It's a Draw!"
-        static let GameDrawtBodyMessage = "Would you like to reset the game?"
-    }
-
+class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     
     // MARK: - Outlets
     @IBOutlet var sceneView: ARSCNView!
@@ -45,12 +23,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     // MARK: - Model
     
-    private var ticTacToeGame = TicTacToe()
+    private lazy var ticTacToeViewModel : TicTacToeGameViewModel = {
+       var tttVM = TicTacToeGameViewModel(ticTacToe: TicTacToe())
+        tttVM.delegate = self
+        return tttVM
+    }()
     
     // MARK: - Instance variables
 
+    //The gameboard in which pieces will be placed
     private var gameBoard = TicTacToeBoard()
     
+    //The current anchor in which the user is currently facing , this will be reset everytime the camera angle changes
     private var currentAnchor : ARPlaneAnchor? {
         didSet {
             if oldValue != nil {
@@ -59,66 +43,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         }
     }
     
+    //The current node in which the board will be added.
     private var currentNode : SCNNode? {
         didSet {
             if currentNode != nil && currentAnchor != nil {
                 currentNode!.addChildNode(PlacementGridNode(withAnchor: self.currentAnchor!))
+                ticTacToeViewModel.boardPlaneFound = true
             }
         }
     }
     
-    private var currentGameState = GameState.PlacingBoard {
-        didSet {
-            switch currentGameState {
-            case .InProgress:
-                currentNode?.removeFromParentNode()
-                ticTacToeGame = TicTacToe()
-                statusText = currentPlayer
-            case .GameOver :
-                
-                if ticTacToeGame.gameDraw {
-                    resetGame(withTitleMessage: StringLiterals.GameDrawTitleMessage, andBodyMessage: StringLiterals.GameDrawtBodyMessage)
-                } else {
-                    
-                    let winningPlayerString : String
-                    switch ticTacToeGame.currentPlayerTurn.oppositePiece {
-                        case .X :
-                            winningPlayerString = StringLiterals.XPlayerVictoryMessage
-                        default :
-                            winningPlayerString = StringLiterals.OPlayerVictoryMessage
-                    }
-                    
-                    resetGame(withTitleMessage: winningPlayerString, andBodyMessage: StringLiterals.GameDrawtBodyMessage)
-
-                }
-
-            case .PlacingBoard :
-                statusText = StringLiterals.FindSurfaceMessage
-                currentNode = nil
-                sceneView.scene = SCNScene()
-                currentAnchor = nil
-            }
-        }
-    }
-    
-    private var currentPlayer : String {
-        get {
-            switch ticTacToeGame.currentPlayerTurn {
-            case .X :
-                return StringLiterals.XPlayerTurnMessage
-            default :
-                return StringLiterals.OPlayerTurnMessage
-            }
-        }
-    }
-    
-    private var statusText : String? {
-        get {
-            return statusLabel.text
-        } set {
-            statusLabel.text = newValue
-        }
-    }
+    //Store the tapped node, we update this when we want to add a game piece(x or o)
+    private var tappedNodeToAddGamePiece : GridNode?
     
     // MARK : - VC Lifecycle
     override func viewDidLoad() {
@@ -155,7 +91,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             return
         }
         
-        switch currentGameState {
+        //If we detect a node or anchor, set it incase the user decides to place a gameboard node
+        switch ticTacToeViewModel.currentGameState {
         case .PlacingBoard:
             currentAnchor = planeAnchor
             currentNode = node
@@ -170,15 +107,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         let tapLocation = recognizer.location(in: sceneView)
         
-        switch currentGameState {
+        switch ticTacToeViewModel.currentGameState {
             
         case .PlacingBoard :
+            
             let hitTestResults = sceneView.hitTest(tapLocation, types: .existingPlaneUsingExtent)
             
             guard currentAnchor != nil, let hitTestResult = hitTestResults.first else {
                 break
             
             }
+            
             setGameBoardAt(userPressedLocation: hitTestResult)
             
         case .InProgress :
@@ -201,52 +140,65 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.scene.rootNode.addChildNode(gameBoard)
         let action = SCNAction.fadeIn(duration: 0.5)
         gameBoard.runAction(action)
-        currentGameState = .InProgress
+        ticTacToeViewModel.boardPlaced = true
     }
     
     private func userPressedMove(atLocation hitTestResults: [SCNHitTestResult]) {
         
-        guard let firstNode = hitTestResults.first, let clickedGridNode = firstNode.node as? GridNode, currentGameState == .InProgress else {
+        guard let firstNode = hitTestResults.first, let clickedGridNode = firstNode.node as? GridNode, ticTacToeViewModel.currentGameState == .InProgress else {
             return
         }
         
-        if ticTacToeGame.makeMove(atPosition: (row: clickedGridNode.row, column: clickedGridNode.column)) {
-            putPieceAt(node: clickedGridNode)
-            updateGameState()
-        }
-        
-    }
-    
-    private func putPieceAt(node : SCNNode) {
-        let pieceToPlace = ticTacToeGame.currentPlayerTurn.oppositePiece
-        let newNode = GamePieceNode(currentGamePiece: pieceToPlace)
-        node.addChildNode(newNode)
-    }
-    
+        ticTacToeViewModel.playerMadeMove(atRow: clickedGridNode.row, atColumn: clickedGridNode.column)
+        tappedNodeToAddGamePiece = clickedGridNode
 
-    // MARK: - Game status functions
-    
-    private func updateGameState() {
-        
-        
-        if ticTacToeGame.gameDraw || ticTacToeGame.gameWon {
-            currentGameState = .GameOver
-        } else if currentGameState == .InProgress {
-            statusText = currentPlayer
-        }
-        
-        
     }
+  
+}
+
+extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
+
     
-    // MARK: - Game reset functions
-    private func resetGame(withTitleMessage title : String, andBodyMessage body : String) {
+    func presentGameEndingScreenWith(titleMessage: String, bodyMessage: String, completion: @escaping () -> Void) {
         
-        let drawGameAlertVC = UIAlertController(title: title, message: body, preferredStyle: .alert)
+        let drawGameAlertVC = UIAlertController(title: titleMessage, message: bodyMessage, preferredStyle: .alert)
         drawGameAlertVC.addAction(UIAlertAction(title: "Yes", style: .default, handler: {[unowned self] (_) in
-            self.currentGameState = .PlacingBoard
+            let fadeOutAction = SCNAction.fadeOut(duration: 0.5)
+            self.gameBoard.runAction(fadeOutAction, completionHandler: {
+                completion()
+            })
         }))
         drawGameAlertVC.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
         present(drawGameAlertVC, animated: true, completion: nil)
+        
     }
     
+    
+    func updateGameWith(statusText: String) {
+        statusLabel.text = statusText
+    }
+
+    
+    func clearPlacingNodesForGameStart() {
+        currentNode?.removeFromParentNode()
+    }
+    
+    func resetViewsForNewGame() {
+        currentAnchor = nil
+        gameBoard.removeFromParentNode()
+        gameBoard = TicTacToeBoard()
+        currentNode = nil
+        tappedNodeToAddGamePiece = nil
+    }
+    
+    func updateGameBoardWithPlayerMovement(withGamePiece: GamePiece) {
+        guard tappedNodeToAddGamePiece != nil else {
+            return
+        }
+        
+        let newGamePieceNode = GamePieceNode(currentGamePiece: withGamePiece)
+        tappedNodeToAddGamePiece!.addChildNode(newGamePieceNode)
+        
+    }
+
 }
