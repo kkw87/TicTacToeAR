@@ -93,6 +93,8 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         
         //If we detect a node or anchor, set it incase the user decides to place a gameboard node
         switch ticTacToeViewModel.currentGameState {
+        case .FindingBoardLocation :
+            fallthrough
         case .PlacingBoard:
             currentAnchor = planeAnchor
             currentNode = node
@@ -149,8 +151,8 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
             return
         }
         
-        ticTacToeViewModel.playerMadeMove(atRow: clickedGridNode.row, atColumn: clickedGridNode.column)
         tappedNodeToAddGamePiece = clickedGridNode
+        ticTacToeViewModel.playerMadeMove(atRow: clickedGridNode.row, atColumn: clickedGridNode.column)
 
     }
   
@@ -175,7 +177,9 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
     
     
     func updateGameWith(statusText: String) {
-        statusLabel.text = statusText
+        DispatchQueue.main.async { [weak self] in
+            self?.statusLabel.text = statusText
+        }
     }
 
     
@@ -192,11 +196,15 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
     }
     
     func updateGameBoardWithPlayerMovement(withGamePiece: GamePiece) {
+        
         guard tappedNodeToAddGamePiece != nil else {
             return
         }
         
         let newGamePieceNode = GamePieceNode(currentGamePiece: withGamePiece)
+        newGamePieceNode.opacity = 0
+        let action = SCNAction.fadeIn(duration: 0.5)
+        
         tappedNodeToAddGamePiece!.addChildNode(newGamePieceNode)
         
     }

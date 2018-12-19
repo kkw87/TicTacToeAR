@@ -44,11 +44,7 @@ class TicTacToeGameViewModel {
     }
     
     // MARK: - Tic Tac Toe Game
-    private var ticTacToeGame : TicTacToe {
-        didSet {
-            currentGameState = .FindingBoardLocation
-        }
-    }
+    private var ticTacToeGame : TicTacToe
     
     var boardPlaced = false {
         didSet {
@@ -73,10 +69,9 @@ class TicTacToeGameViewModel {
             switch currentGameState {
             case .FindingBoardLocation :
                 delegate?.updateGameWith(statusText: StringLiterals.FindSurfaceMessage)
-                boardPlaced = false
-                boardPlaneFound = false
             case .InProgress :
                 delegate?.clearPlacingNodesForGameStart()
+                delegate?.updateGameWith(statusText: currentPlayer)
             case .PlacingBoard :
                 delegate?.updateGameWith(statusText: StringLiterals.PlaceGridMessage)
             case .GameOver :
@@ -87,6 +82,8 @@ class TicTacToeGameViewModel {
                         
                         self.delegate?.resetViewsForNewGame()
                         self.ticTacToeGame = TicTacToe()
+                        self.boardPlaced = false
+                        self.boardPlaneFound = false
                     })
                     
                 }
@@ -134,15 +131,19 @@ class TicTacToeGameViewModel {
     
     // MARK: - Game move functions
     func playerMadeMove(atRow : Int, atColumn : Int) {
+        
         guard ticTacToeGame.makeMove(atPosition: (atRow, atColumn)) else {
             return
         }
         
+        delegate?.updateGameBoardWithPlayerMovement(withGamePiece: ticTacToeGame.currentPlayerTurn.oppositePiece)
+        
         if let _ = gameEndingMessage {
             currentGameState = .GameOver
         } else {
+            
             delegate?.updateGameWith(statusText: currentPlayer)
-            delegate?.updateGameBoardWithPlayerMovement(withGamePiece: ticTacToeGame.currentPlayerTurn.oppositePiece)
+            
         }
     }
     
