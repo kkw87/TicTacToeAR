@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 // MARK: - GamePiece Declaration
 enum GamePiece {
     case X
@@ -33,7 +34,7 @@ struct TicTacToe {
     // MARK: - Game conditions
     private var board : [[GamePiece]]
     
-    private var currentMovesRemaining : Int
+    private(set) var currentMovesRemaining : Int
     private(set) var currentPlayerTurn : GamePiece
     
     
@@ -77,6 +78,14 @@ struct TicTacToe {
     // MARK: - Game Moves
     
     mutating func makeMove(atPosition position: (row : Int, column : Int)) -> Bool {
+        
+        guard position.row <= board.count && position.column <= board[0].count else {
+            return false 
+        }
+        
+        guard position.row >= 0 && position.column >= 0 else {
+            return false
+        }
         
         guard board[position.column][position.row] == .Empty else {
             return false

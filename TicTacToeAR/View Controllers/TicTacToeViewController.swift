@@ -204,6 +204,7 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
         let newGamePieceNode = GamePieceNode(currentGamePiece: withGamePiece)
         newGamePieceNode.opacity = 0
         let action = SCNAction.fadeIn(duration: 0.5)
+        newGamePieceNode.runAction(action)
         
         tappedNodeToAddGamePiece!.addChildNode(newGamePieceNode)
         
