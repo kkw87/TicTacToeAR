@@ -23,6 +23,21 @@ class TicTacToeARTests: XCTestCase {
         super.tearDown()
 
     }
+    
+    func testBoardLayout() {
+        
+        // 1. given
+        let correctGameBoard = [[GamePiece.Empty, GamePiece.Empty, GamePiece.Empty],
+                                [GamePiece.Empty, GamePiece.Empty, GamePiece.Empty],
+                                [GamePiece.Empty, GamePiece.Empty, GamePiece.Empty]]
+        
+        // 2. when
+        let matchingGameBoards = correctGameBoard == ticTacToeGame.board
+        
+        
+        // 3. then
+        XCTAssertEqual(matchingGameBoards, true, "The current board is not initalized to a 3x3 grid of Empty nodes")
+    }
 
     func testUserMoveInput() {
         
@@ -110,7 +125,7 @@ class TicTacToeARTests: XCTestCase {
         XCTAssertEqual(isGameWon, true, "The victory condition for placing all the pieces vertically is not working.")
     }
     
-    func testDrawCondition() {
+    func testGameDrawCondition() {
         
         //X Player move
         _ = ticTacToeGame.makeMove(atPosition: (0,0))
@@ -146,11 +161,7 @@ class TicTacToeARTests: XCTestCase {
         //Y  X  X
         
         let isGameADraw = ticTacToeGame.gameDraw
-        let isGameWon = ticTacToeGame.gameWon
-        let curretNumberOfMovesRemaining = ticTacToeGame.currentMovesRemaining
-        
-        XCTAssertEqual(curretNumberOfMovesRemaining, 0, "There are turns remaining when all board pieces are filled out")
-        XCTAssertEqual(isGameWon, false, "The game is considered won while there were no winning conditions matched.")
+
         XCTAssertEqual(isGameADraw, true, "The game does not properly detect a draw condition when the board is filled out.")
         
         

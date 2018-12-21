@@ -32,7 +32,7 @@ enum GamePiece {
 struct TicTacToe {
     
     // MARK: - Game conditions
-    private var board : [[GamePiece]]
+    private(set) var board : [[GamePiece]]
     
     private(set) var currentMovesRemaining : Int
     private(set) var currentPlayerTurn : GamePiece
