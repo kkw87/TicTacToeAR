@@ -11,6 +11,9 @@
 		481C971621C8BF7000F48756 /* TicTacToeGameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481C971521C8BF7000F48756 /* TicTacToeGameViewModel.swift */; };
 		48207EE721C5DFEC0096C298 /* GamePieceNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48207EE621C5DFEC0096C298 /* GamePieceNode.swift */; };
 		4822206321BB2455008C01D5 /* PlacementGridNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4822206221BB2455008C01D5 /* PlacementGridNode.swift */; };
+		4825868A21CE9E6200F09234 /* JoinGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868921CE9E6200F09234 /* JoinGameViewController.swift */; };
+		4825868C21CEAC9000F09234 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868B21CEAC9000F09234 /* Extensions.swift */; };
+		4825868E21CEAD9A00F09234 /* MainScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868D21CEAD9A00F09234 /* MainScreenViewController.swift */; };
 		48D6340C21B99BBE00845EE5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6340B21B99BBE00845EE5 /* AppDelegate.swift */; };
 		48D6340E21B99BBE00845EE5 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 48D6340D21B99BBE00845EE5 /* art.scnassets */; };
 		48D6341021B99BBE00845EE5 /* TicTacToeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6340F21B99BBE00845EE5 /* TicTacToeViewController.swift */; };
@@ -47,6 +50,9 @@
 		481C971521C8BF7000F48756 /* TicTacToeGameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeGameViewModel.swift; sourceTree = "<group>"; };
 		48207EE621C5DFEC0096C298 /* GamePieceNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePieceNode.swift; sourceTree = "<group>"; };
 		4822206221BB2455008C01D5 /* PlacementGridNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementGridNode.swift; sourceTree = "<group>"; };
+		4825868921CE9E6200F09234 /* JoinGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinGameViewController.swift; sourceTree = "<group>"; };
+		4825868B21CEAC9000F09234 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		4825868D21CEAD9A00F09234 /* MainScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenViewController.swift; sourceTree = "<group>"; };
 		48D6340821B99BBE00845EE5 /* TicTacToeAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TicTacToeAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48D6340B21B99BBE00845EE5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		48D6340D21B99BBE00845EE5 /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
@@ -142,7 +148,9 @@
 		48D6341F21B9A13E00845EE5 /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				4825868921CE9E6200F09234 /* JoinGameViewController.swift */,
 				48D6340F21B99BBE00845EE5 /* TicTacToeViewController.swift */,
+				4825868D21CEAD9A00F09234 /* MainScreenViewController.swift */,
 			);
 			path = "View Controllers";
 			sourceTree = "<group>";
@@ -154,6 +162,7 @@
 				48D6340B21B99BBE00845EE5 /* AppDelegate.swift */,
 				48D6340D21B99BBE00845EE5 /* art.scnassets */,
 				48D6341421B99BBE00845EE5 /* Assets.xcassets */,
+				4825868B21CEAC9000F09234 /* Extensions.swift */,
 			);
 			path = "Supporting Files";
 			sourceTree = "<group>";
@@ -331,8 +340,11 @@
 				48D6343921BA39CD00845EE5 /* GridNode.swift in Sources */,
 				4822206321BB2455008C01D5 /* PlacementGridNode.swift in Sources */,
 				48D6342721BA1B3C00845EE5 /* TicTacToeBoard.swift in Sources */,
+				4825868C21CEAC9000F09234 /* Extensions.swift in Sources */,
 				481C971621C8BF7000F48756 /* TicTacToeGameViewModel.swift in Sources */,
 				48D6340C21B99BBE00845EE5 /* AppDelegate.swift in Sources */,
+				4825868E21CEAD9A00F09234 /* MainScreenViewController.swift in Sources */,
+				4825868A21CE9E6200F09234 /* JoinGameViewController.swift in Sources */,
 				48207EE721C5DFEC0096C298 /* GamePieceNode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

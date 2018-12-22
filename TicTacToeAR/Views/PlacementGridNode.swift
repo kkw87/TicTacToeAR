@@ -48,31 +48,5 @@ class PlacementGridNode : SCNNode {
     }
 }
 
-extension SCNMaterial {
-    convenience init(diffuse: Any?) {
-        self.init()
-        self.diffuse.contents = diffuse
-        isDoubleSided = true
-        lightingModel = .physicallyBased
-    }
-}
 
-extension SCNMaterialProperty {
-    var simdContentsTransform: float4x4 {
-        get {
-            return float4x4(contentsTransform)
-        }
-        set(newValue) {
-            contentsTransform = SCNMatrix4(newValue)
-        }
-    }
-}
 
-extension float4x4 {
-    init(scale vector: float3) {
-        self.init(float4(vector.x, 0, 0, 0),
-                  float4(0, vector.y, 0, 0),
-                  float4(0, 0, vector.z, 0),
-                  float4(0, 0, 0, 1))
-    }
-}

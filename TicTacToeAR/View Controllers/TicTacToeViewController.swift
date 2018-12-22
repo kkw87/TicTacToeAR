@@ -16,8 +16,7 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     @IBOutlet var sceneView: ARSCNView!
     @IBOutlet weak var statusLabel: UILabel! {
         didSet {
-            statusLabel.layer.cornerRadius = 5
-            statusLabel.layer.masksToBounds = true
+            statusLabel.roundEdges()
         }
     }
     
