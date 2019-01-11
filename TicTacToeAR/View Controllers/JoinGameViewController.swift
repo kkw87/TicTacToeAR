@@ -7,14 +7,19 @@
 //
 
 import UIKit
+import MultipeerConnectivity
 
 class JoinGameViewController: UIViewController {
+ 
+    // Needs a link to the network session
     
     // MARK: - Storyboard
     struct Storyboard {
         static let JoinGameCellID = "Join Game Cell"
+        
+        static let PeerSegue = "peerSegue"
     }
-    
+
     // MARK: - Outlets
     @IBOutlet weak var backButton: UIButton!
     @IBOutlet weak var backgroundImageView: UIImageView! {
@@ -28,32 +33,55 @@ class JoinGameViewController: UIViewController {
         }
     }
     
+    private let myself = UserDefaults.standard.myself
+
+    var networkSession : MultipeerNetworkSessionViewModel?
     
     // MARK: - VC Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        networkSession?.dataSource = self
+        networkSession?.startBrowsing()
+        
     }
     
     // MARK: - Outlet functions
     @IBAction func goBack(_ sender: Any) {
         self.dismiss(animated: true, completion: nil)
     }
-    
-
 }
 
 extension JoinGameViewController : UITableViewDataSource, UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "") as! UITableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: Storyboard.JoinGameCellID)!
+        
+        if let currentGame = networkSession?.games[indexPath.row] {
+            cell.textLabel?.text = currentGame.name
+        }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        return networkSession?.games.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        if let foundGame = networkSession?.games[indexPath.row] {
+        
+            networkSession?.join(game: foundGame)
+        
+            performSegue(withIdentifier: Storyboard.PeerSegue, sender: self)
+        }
+    }
+}
+
+extension JoinGameViewController : MultipeerNetworkSessionViewModelDataSource {
+    func gamesUpdated() {
+        tableView.reloadData()
     }
 }

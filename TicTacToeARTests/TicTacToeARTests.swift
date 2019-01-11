@@ -45,6 +45,9 @@ class TicTacToeARTests: XCTestCase {
         let invalidUserMoveInputNegative = (-1,-6)
         let invalidUserMoveInputLarge = (10,29)
         let validUserInput = (2,2)
+        let playerMoveInDataForm = PlayerMove(row: 2, column: 2)
+        
+        
         // When
         let firstTestResult = ticTacToeGame.makeMove(atPosition: invalidUserMoveInputNegative)
         let secondTestResult = ticTacToeGame.makeMove(atPosition: invalidUserMoveInputLarge)
@@ -52,11 +55,17 @@ class TicTacToeARTests: XCTestCase {
         
         let fourthResult = ticTacToeGame.makeMove(atPosition: validUserInput)
         
+        let archivedMultipeerMoveResult = try? NSKeyedArchiver.archivedData(withRootObject: playerMoveInDataForm, requiringSecureCoding: true)
+        
+        let receivedDataForm = try? NSKeyedUnarchiver.unarchivedObject(ofClass: PlayerMove.self, from: archivedMultipeerMoveResult!)
+        
         // Then
         XCTAssertEqual(firstTestResult, false, "The user entered an invalid move position that is smaller than 0 and it was accepted by the game.")
         XCTAssertEqual(secondTestResult, false, "The user entered an invalid move position that is larger than the board and it was accepted by the game.")
         XCTAssertEqual(thirdTestResult, true, "The user entered a valid move position and it was not accepted")
         XCTAssertEqual(fourthResult, false, "The user made an invalid move by placing a piece in a non empty box")
+        XCTAssert(archivedMultipeerMoveResult != nil, "The user move to be sent over multipeer couldn't be converted into data form")
+        XCTAssert(receivedDataForm != nil, "The user was unable to receive a player move sent through multipeer connectivity")
 
     }
     

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="EAD-Xl-yib">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14460.31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -38,7 +38,7 @@
                                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 </state>
                                                 <connections>
-                                                    <segue destination="yCu-VN-ZPd" kind="presentation" identifier="FindGameSegue" modalPresentationStyle="overFullScreen" modalTransitionStyle="crossDissolve" id="4Qb-RU-TO6"/>
+                                                    <segue destination="yCu-VN-ZPd" kind="presentation" identifier="Join Segue" modalPresentationStyle="overFullScreen" modalTransitionStyle="crossDissolve" id="4Qb-RU-TO6"/>
                                                 </connections>
                                             </button>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="XFL-8c-vsU">
@@ -48,7 +48,7 @@
                                                     <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 </state>
                                                 <connections>
-                                                    <segue destination="BV1-FR-VrT" kind="show" identifier="Host Segue" id="M1P-6j-s9b"/>
+                                                    <segue destination="38B-pf-vHq" kind="unwind" identifier="Host Segue" unwindAction="unwindAsHostWithSegue:" id="1gx-DD-tg2"/>
                                                 </connections>
                                             </button>
                                         </subviews>
@@ -85,8 +85,9 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="87i-DV-irz" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <exit id="38B-pf-vHq" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="-42.399999999999999" y="328.78560719640183"/>
+            <point key="canvasLocation" x="-239" y="329"/>
         </scene>
         <!--Join Game View Controller-->
         <scene sceneID="X5M-rO-Sbo">
@@ -114,9 +115,6 @@
                                             <rect key="frame" x="0.0" y="0.0" width="240" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
-                                        <connections>
-                                            <segue destination="BV1-FR-VrT" kind="show" identifier="JoinGameSegue" id="DTa-ny-9ec"/>
-                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                                 <connections>
@@ -164,11 +162,13 @@
                         <outlet property="backButton" destination="dCI-GY-tnp" id="5MH-Dh-02V"/>
                         <outlet property="backgroundImageView" destination="m7a-qT-hnd" id="tIu-9A-A0F"/>
                         <outlet property="tableView" destination="Qtc-5P-gLy" id="ymB-qy-xJ2"/>
+                        <segue destination="4c4-E2-J59" kind="unwind" identifier="peerSegue" unwindAction="unwindAsPeerWithSegue:" id="Ev0-mf-JHE"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="I3x-id-jc9" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <exit id="4c4-E2-J59" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="-42.399999999999999" y="1059.2203898050975"/>
+            <point key="canvasLocation" x="670" y="329"/>
         </scene>
         <!--Tic Tac Toe View Controller-->
         <scene sceneID="tXr-a1-R10">
@@ -192,32 +192,40 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oFs-YI-PaD">
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                                <connections>
+                                    <segue destination="EAD-Xl-yib" kind="embed" identifier="embedOverlaySegue" id="zvt-BT-C1P"/>
+                                </connections>
+                            </containerView>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
+                            <constraint firstItem="oFs-YI-PaD" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="FD0-EL-6hC"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="GsS-dJ-CKf"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="VpT-BR-CcM"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="XyZ-9z-H8e"/>
+                            <constraint firstItem="oFs-YI-PaD" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="ahO-pu-jyj"/>
+                            <constraint firstItem="oFs-YI-PaD" firstAttribute="top" secondItem="U0K-SW-4ec" secondAttribute="top" id="edn-kL-BMc"/>
                             <constraint firstItem="i09-Ut-9GC" firstAttribute="centerX" secondItem="BrB-h1-WRS" secondAttribute="centerX" id="nCr-Rr-FOh"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="top" secondItem="U0K-SW-4ec" secondAttribute="top" id="rJc-2c-zQA"/>
                             <constraint firstItem="fQZ-KI-GVf" firstAttribute="bottom" secondItem="i09-Ut-9GC" secondAttribute="bottom" constant="30" id="wPr-B1-fZr"/>
+                            <constraint firstItem="oFs-YI-PaD" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="yAf-uw-9dr"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="fQZ-KI-GVf"/>
                     </view>
                     <connections>
+                        <outlet property="mainScreenView" destination="oFs-YI-PaD" id="cfC-aF-AVa"/>
                         <outlet property="sceneView" destination="BrB-h1-WRS" id="5nT-qQ-ynl"/>
                         <outlet property="statusLabel" destination="i09-Ut-9GC" id="iOg-yC-Wfs"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SZV-WD-TEh" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="823" y="329"/>
+            <point key="canvasLocation" x="-1182" y="329"/>
         </scene>
     </scenes>
     <resources>
         <image name="Background" width="1500" height="1500"/>
     </resources>
-    <inferredMetricsTieBreakers>
-        <segue reference="DTa-ny-9ec"/>
-    </inferredMetricsTieBreakers>
 </document>

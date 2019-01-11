@@ -7,13 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4819542D21E1116D000CDB45 /* PlayerMove.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4819542C21E1116D000CDB45 /* PlayerMove.swift */; };
 		481A24CF21CA0B61006D2950 /* TicTacToeARTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481A24CE21CA0B61006D2950 /* TicTacToeARTests.swift */; };
 		481C971621C8BF7000F48756 /* TicTacToeGameViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481C971521C8BF7000F48756 /* TicTacToeGameViewModel.swift */; };
+		481E9B0021D7180500FF3E29 /* GameToJoin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E9AFF21D7180500FF3E29 /* GameToJoin.swift */; };
+		481E9B0221D730A400FF3E29 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E9B0121D730A400FF3E29 /* Player.swift */; };
+		481E9B0521D7C16500FF3E29 /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 481E9B0421D7C16500FF3E29 /* UserDefaults.swift */; };
 		48207EE721C5DFEC0096C298 /* GamePieceNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48207EE621C5DFEC0096C298 /* GamePieceNode.swift */; };
 		4822206321BB2455008C01D5 /* PlacementGridNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4822206221BB2455008C01D5 /* PlacementGridNode.swift */; };
 		4825868A21CE9E6200F09234 /* JoinGameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868921CE9E6200F09234 /* JoinGameViewController.swift */; };
 		4825868C21CEAC9000F09234 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868B21CEAC9000F09234 /* Extensions.swift */; };
 		4825868E21CEAD9A00F09234 /* MainScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825868D21CEAD9A00F09234 /* MainScreenViewController.swift */; };
+		4825869821D2A58C00F09234 /* MultipeerNetworkSessionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825869721D2A58C00F09234 /* MultipeerNetworkSessionViewModel.swift */; };
+		4825869B21D34A7C00F09234 /* MultipeerConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4825869A21D34A7C00F09234 /* MultipeerConstants.swift */; };
 		48D6340C21B99BBE00845EE5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6340B21B99BBE00845EE5 /* AppDelegate.swift */; };
 		48D6340E21B99BBE00845EE5 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 48D6340D21B99BBE00845EE5 /* art.scnassets */; };
 		48D6341021B99BBE00845EE5 /* TicTacToeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6340F21B99BBE00845EE5 /* TicTacToeViewController.swift */; };
@@ -22,7 +28,7 @@
 		48D6341821B99BBE00845EE5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 48D6341621B99BBE00845EE5 /* LaunchScreen.storyboard */; };
 		48D6342721BA1B3C00845EE5 /* TicTacToeBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6342621BA1B3C00845EE5 /* TicTacToeBoard.swift */; };
 		48D6342F21BA1DE800845EE5 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6342E21BA1DE800845EE5 /* Tests.swift */; };
-		48D6343721BA260C00845EE5 /* TicTacToeGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6343621BA260C00845EE5 /* TicTacToeGame.swift */; };
+		48D6343721BA260C00845EE5 /* TicTacToe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6343621BA260C00845EE5 /* TicTacToe.swift */; };
 		48D6343921BA39CD00845EE5 /* GridNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48D6343821BA39CD00845EE5 /* GridNode.swift */; };
 /* End PBXBuildFile section */
 
@@ -44,15 +50,21 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4819542C21E1116D000CDB45 /* PlayerMove.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerMove.swift; sourceTree = "<group>"; };
 		481A24CC21CA0B61006D2950 /* TicTacToeARTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TicTacToeARTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		481A24CE21CA0B61006D2950 /* TicTacToeARTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeARTests.swift; sourceTree = "<group>"; };
 		481A24D021CA0B61006D2950 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		481C971521C8BF7000F48756 /* TicTacToeGameViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeGameViewModel.swift; sourceTree = "<group>"; };
+		481E9AFF21D7180500FF3E29 /* GameToJoin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GameToJoin.swift; path = TicTacToeAR/Models/GameToJoin.swift; sourceTree = SOURCE_ROOT; };
+		481E9B0121D730A400FF3E29 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Player.swift; path = TicTacToeAR/Models/Player.swift; sourceTree = SOURCE_ROOT; };
+		481E9B0421D7C16500FF3E29 /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		48207EE621C5DFEC0096C298 /* GamePieceNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamePieceNode.swift; sourceTree = "<group>"; };
 		4822206221BB2455008C01D5 /* PlacementGridNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacementGridNode.swift; sourceTree = "<group>"; };
 		4825868921CE9E6200F09234 /* JoinGameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinGameViewController.swift; sourceTree = "<group>"; };
 		4825868B21CEAC9000F09234 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		4825868D21CEAD9A00F09234 /* MainScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreenViewController.swift; sourceTree = "<group>"; };
+		4825869721D2A58C00F09234 /* MultipeerNetworkSessionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerNetworkSessionViewModel.swift; sourceTree = "<group>"; };
+		4825869A21D34A7C00F09234 /* MultipeerConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultipeerConstants.swift; sourceTree = "<group>"; };
 		48D6340821B99BBE00845EE5 /* TicTacToeAR.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TicTacToeAR.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		48D6340B21B99BBE00845EE5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		48D6340D21B99BBE00845EE5 /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
@@ -65,7 +77,7 @@
 		48D6342C21BA1DE800845EE5 /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		48D6342E21BA1DE800845EE5 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		48D6343021BA1DE800845EE5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		48D6343621BA260C00845EE5 /* TicTacToeGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToeGame.swift; sourceTree = "<group>"; };
+		48D6343621BA260C00845EE5 /* TicTacToe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicTacToe.swift; sourceTree = "<group>"; };
 		48D6343821BA39CD00845EE5 /* GridNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridNode.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -107,8 +119,25 @@
 			isa = PBXGroup;
 			children = (
 				481C971521C8BF7000F48756 /* TicTacToeGameViewModel.swift */,
+				4825869721D2A58C00F09234 /* MultipeerNetworkSessionViewModel.swift */,
 			);
 			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		481E9B0321D7C14E00FF3E29 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				481E9B0421D7C16500FF3E29 /* UserDefaults.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		4825869921D34A3100F09234 /* GlobalConstants */ = {
+			isa = PBXGroup;
+			children = (
+				4825869A21D34A7C00F09234 /* MultipeerConstants.swift */,
+			);
+			path = GlobalConstants;
 			sourceTree = "<group>";
 		};
 		48D633FF21B99BBE00845EE5 = {
@@ -134,6 +163,8 @@
 		48D6340A21B99BBE00845EE5 /* TicTacToeAR */ = {
 			isa = PBXGroup;
 			children = (
+				481E9B0321D7C14E00FF3E29 /* Utilities */,
+				4825869921D34A3100F09234 /* GlobalConstants */,
 				481C971421C8BF1500F48756 /* ViewModels */,
 				48D6342221B9A15800845EE5 /* Views */,
 				48D6342121B9A15000845EE5 /* Models */,
@@ -170,7 +201,10 @@
 		48D6342121B9A15000845EE5 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				48D6343621BA260C00845EE5 /* TicTacToeGame.swift */,
+				481E9AFF21D7180500FF3E29 /* GameToJoin.swift */,
+				481E9B0121D730A400FF3E29 /* Player.swift */,
+				48D6343621BA260C00845EE5 /* TicTacToe.swift */,
+				4819542C21E1116D000CDB45 /* PlayerMove.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -335,16 +369,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				48D6343721BA260C00845EE5 /* TicTacToeGame.swift in Sources */,
+				48D6343721BA260C00845EE5 /* TicTacToe.swift in Sources */,
 				48D6341021B99BBE00845EE5 /* TicTacToeViewController.swift in Sources */,
 				48D6343921BA39CD00845EE5 /* GridNode.swift in Sources */,
 				4822206321BB2455008C01D5 /* PlacementGridNode.swift in Sources */,
+				481E9B0021D7180500FF3E29 /* GameToJoin.swift in Sources */,
 				48D6342721BA1B3C00845EE5 /* TicTacToeBoard.swift in Sources */,
+				4825869B21D34A7C00F09234 /* MultipeerConstants.swift in Sources */,
 				4825868C21CEAC9000F09234 /* Extensions.swift in Sources */,
 				481C971621C8BF7000F48756 /* TicTacToeGameViewModel.swift in Sources */,
+				4819542D21E1116D000CDB45 /* PlayerMove.swift in Sources */,
 				48D6340C21B99BBE00845EE5 /* AppDelegate.swift in Sources */,
+				4825869821D2A58C00F09234 /* MultipeerNetworkSessionViewModel.swift in Sources */,
+				481E9B0521D7C16500FF3E29 /* UserDefaults.swift in Sources */,
 				4825868E21CEAD9A00F09234 /* MainScreenViewController.swift in Sources */,
 				4825868A21CE9E6200F09234 /* JoinGameViewController.swift in Sources */,
+				481E9B0221D730A400FF3E29 /* Player.swift in Sources */,
 				48207EE721C5DFEC0096C298 /* GamePieceNode.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -551,6 +591,7 @@
 		48D6341D21B99BBE00845EE5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C59S222Q28;
@@ -569,6 +610,7 @@
 		48D6341E21B99BBE00845EE5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C59S222Q28;

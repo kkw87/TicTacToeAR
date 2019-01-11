@@ -9,6 +9,15 @@
 import UIKit
 
 class MainScreenViewController: UIViewController {
+    
+    // MARK: - Storyboard
+    struct Storyboard {
+        static let HostSegue = "Host Segue"
+        static let JoinSegue = "Join Segue"
+    }
+    
+    // MARK: - Instance Variables
+    private let myself = UserDefaults.standard.myself
 
     // MARK: - Outlets 
     @IBOutlet weak var joinButton: UIButton! {
@@ -22,12 +31,27 @@ class MainScreenViewController: UIViewController {
         }
     }
     
-    // MARK : - VC Lifecycle
+    // MARK: - VC Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
     }
+    
+    // MARK: - Navigation
 
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        let segueID = segue.identifier
+        
+        switch segueID {
+        case Storyboard.JoinSegue:
+            guard let parentVC = parent as? TicTacToeViewController, let destinationVC = segue.destination as? JoinGameViewController else {
+                break
+            }
+            destinationVC.networkSession = parentVC.multipeerNetworkViewModel
+            
+        default:
+            break
+        }
+    }
 }

@@ -71,7 +71,7 @@ class TicTacToeGameViewModel {
                 delegate?.updateGameWith(statusText: StringLiterals.FindSurfaceMessage)
             case .InProgress :
                 delegate?.clearPlacingNodesForGameStart()
-                delegate?.updateGameWith(statusText: currentPlayer)
+                delegate?.updateGameWith(statusText: playerTurnMessage)
             case .PlacingBoard :
                 delegate?.updateGameWith(statusText: StringLiterals.PlaceGridMessage)
             case .GameOver :
@@ -102,16 +102,26 @@ class TicTacToeGameViewModel {
     
     var delegate : TicTacToeGameViewModelDelegate?
     
-    private var currentPlayer : String {
+    //player messager
+    var currentPlayer : GamePiece {
+        return ticTacToeGame.currentPlayerTurn
+    }
+    
+    var playerTurnMessage : String {
+        
         switch ticTacToeGame.currentPlayerTurn {
         case .O :
             return StringLiterals.OPlayerTurnMessage
         default :
             return StringLiterals.XPlayerTurnMessage
             
-        }
+        } 
     }
     
+    
+    
+    
+    // MARK: - Game ending functions
     private var gameEndingMessage : (titleMessage : String, bodyMessage : String)? {
         guard ticTacToeGame.gameWon || ticTacToeGame.gameDraw else {
             return nil
@@ -130,9 +140,9 @@ class TicTacToeGameViewModel {
     }
     
     // MARK: - Game move functions
-    func playerMadeMove(atRow : Int, atColumn : Int) {
+    func player(madeMove : PlayerMove) {
         
-        guard ticTacToeGame.makeMove(atPosition: (atRow, atColumn)) else {
+        guard ticTacToeGame.makeMove(atPosition: (madeMove.playerMoveRow, madeMove.playerMoveColumn)) else {
             return
         }
         
@@ -142,9 +152,14 @@ class TicTacToeGameViewModel {
             currentGameState = .GameOver
         } else {
             
-            delegate?.updateGameWith(statusText: currentPlayer)
+            delegate?.updateGameWith(statusText: playerTurnMessage)
             
         }
+    }
+    
+    // MARK: - Game state functions
+    func loadGameStateFrom(existingGame : TicTacToe) {
+        ticTacToeGame = existingGame
     }
     
 }

@@ -1,5 +1,5 @@
 //
-//  TicTacToeGame.swift
+//  TicTacToe.swift
 //  TicTacToeAR
 //
 //  Created by Kevin Wang on 12/6/18.
@@ -10,7 +10,7 @@ import Foundation
 
 
 // MARK: - GamePiece Declaration
-enum GamePiece {
+enum GamePiece : CustomStringConvertible {
     case X
     case O
     case Empty
@@ -26,19 +26,32 @@ enum GamePiece {
         }
     }
     
-    
+    var description: String {
+        switch self {
+        case .X :
+            return "X"
+        case .O :
+            return "O"
+        case .Empty :
+            return "Empty"
+        }
+    }
 }
 
-struct TicTacToe {
+class TicTacToe : NSObject, NSCoding {
+    
+    struct CodingKeys {
+        static let BoardKey = "board"
+        static let MoveRemaining = "key"
+        static let CurrentTurn = "turn"
+    }
     
     // MARK: - Game conditions
     private(set) var board : [[GamePiece]]
     
     private(set) var currentMovesRemaining : Int
     private(set) var currentPlayerTurn : GamePiece
-    
-    
-    
+
     var gameWon : Bool {
         // Row 0 All Matching victory condition
         return board[0][0] == board[0][1] && board[0][1] == board[0][2] && board[0][0] != .Empty ||
@@ -77,7 +90,7 @@ struct TicTacToe {
     
     // MARK: - Game Moves
     
-    mutating func makeMove(atPosition position: (row : Int, column : Int)) -> Bool {
+    func makeMove(atPosition position: (row : Int, column : Int)) -> Bool {
         
         guard position.row <= board.count && position.column <= board[0].count else {
             return false 
@@ -98,4 +111,23 @@ struct TicTacToe {
         return true
     }
     
+    //MARK: - NSCoding Protocol
+    func encode(with aCoder: NSCoder) {
+        aCoder.encode(board, forKey: CodingKeys.BoardKey)
+        aCoder.encode(currentMovesRemaining, forKey: CodingKeys.MoveRemaining)
+        aCoder.encode(currentPlayerTurn, forKey: CodingKeys.CurrentTurn)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        board = aDecoder.decodeObject(forKey: CodingKeys.BoardKey) as! [[GamePiece]]
+        currentPlayerTurn = aDecoder.decodeObject(forKey: CodingKeys.CurrentTurn) as! GamePiece
+        currentMovesRemaining = aDecoder.decodeInteger(forKey: CodingKeys.MoveRemaining)
+    }
+    
+}
+
+extension TicTacToe : NSSecureCoding {
+    static var supportsSecureCoding: Bool {
+        return true
+    } 
 }
