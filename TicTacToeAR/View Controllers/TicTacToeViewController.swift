@@ -380,14 +380,22 @@ extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
     
     func networkSession(leaving player: Player) {
         
+        
+        
         if multipeerNetworkViewModel.isServer {
-            //Display message that player left , game still goes on
+            
+            let hostResetAlertVC = UIAlertController.playerLeftAlertController()
+            present(hostResetAlertVC, animated: true, completion: nil)
         } else {
-            //Disconnect player from session
-            //Send them back to the main screen
-            //Display an alert that the host left
-            //start browsing again for games
-            //The current game and the screen should also be reset in case they decide to host
+            
+            let playerResetAlertVC = UIAlertController.playerLeftAlertController()
+            present(playerResetAlertVC, animated: true, completion: nil)
+            
+            multipeerNetworkViewModel.leaveGame()
+            mainScreenIsHidden = false
+            ticTacToeViewModel.resetGame()
+            multipeerNetworkViewModel.startBrowsing()
+            
         }
     }
     
@@ -399,8 +407,13 @@ struct ResetAlertControllerMessages {
     static let ConfirmationButtonText = "Yes"
     static let DeclineButtonText = "No"
     
-    static let TitleMessage = "Exit Game"
-    static let BodyMessage = "Are you sure you want to leave the current game?"
+    static let PlayerLeftButtonText = "Continue"
+    
+    static let ResetTitleMessage = "Exit Game"
+    static let ResetBodyMessage = "Are you sure you want to leave the current game?"
+    
+    static let PlayerLeftTitleMessage = "Player left"
+    static let PlayerLeftBodyMessage = "The other player left the game!"
 }
 
 extension UIAlertController {
@@ -409,16 +422,20 @@ extension UIAlertController {
         let confirmationAction = UIAlertAction(title: ResetAlertControllerMessages.ConfirmationButtonText, style: .default, handler: withHandler)
         let declineAction = UIAlertAction(title: ResetAlertControllerMessages.DeclineButtonText, style: .cancel, handler: nil)
         
-        let resetAlertController = UIAlertController(title: ResetAlertControllerMessages.TitleMessage, message: ResetAlertControllerMessages.BodyMessage, preferredStyle: .alert)
+        let resetAlertController = UIAlertController(title: ResetAlertControllerMessages.ResetTitleMessage, message: ResetAlertControllerMessages.ResetBodyMessage, preferredStyle: .alert)
         resetAlertController.addAction(confirmationAction)
         resetAlertController.addAction(declineAction)
         
         return resetAlertController
     }
     
-//    static func playerLeftAlertController(withHandler : @escaping (UIAlertAction)->Void) -> UIAlertController {
-//        //Display alert that a player left
-//        
-//    }
+    static func playerLeftAlertController() -> UIAlertController {
+        
+        let confirmationAction = UIAlertAction(title: ResetAlertControllerMessages.PlayerLeftButtonText, style: .default, handler: nil)
+        let playerLeftAlertController = UIAlertController(title: ResetAlertControllerMessages.PlayerLeftTitleMessage, message: ResetAlertControllerMessages.PlayerLeftBodyMessage, preferredStyle: .alert)
+        playerLeftAlertController.addAction(confirmationAction)
+        
+        return playerLeftAlertController
+    }
     
 }
