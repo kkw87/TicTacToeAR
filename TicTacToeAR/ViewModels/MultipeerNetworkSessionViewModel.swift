@@ -9,14 +9,16 @@
 import MultipeerConnectivity
 import ARKit
 
+
+
 protocol MultipeerNetworkSessionViewModelDelegate {
     
-    func networkSession(received command: PlayerMove)
-    func networkSession(received worldTrackingConfiguration : ARWorldTrackingConfiguration)
-    func networkSession(received gameState : TicTacToe)
+    func networkSession(received command: NetworkPlayerMove)
+    func networkSession(received worldConfiguration : ARWorldTrackingConfiguration)
+    func networkSession(received gameBoard : TicTacToeBoard)
+    func networkSession(received gameState : CurrentGameData)
     func networkSession(joining player: Player)
     func networkSession(leaving player: Player)
-    
 }
 
 protocol MultipeerNetworkSessionViewModelDataSource {
@@ -90,6 +92,17 @@ class MultipeerNetworkSessionViewModel : NSObject {
         }
     }
     
+    // MARK: - Leave game
+    func leaveGame() {
+        if isServer {
+            stopAdvertising()
+            //Disconnect all other players
+        } else {
+            hostSession.disconnect()
+            startBrowsing()
+        }
+    }
+    
     // MARK: - Advertising functions
     func startAdvertising() {
         serviceBrowser.stopBrowsingForPeers()
@@ -117,7 +130,6 @@ class MultipeerNetworkSessionViewModel : NSObject {
         }
         
         serviceBrowser.invitePeer(game.host.peerID, to: hostSession, withContext: nil, timeout: Constants.ConnectionTimeout)
-        
     }
     
     func isMyTurn(currentPlayerTurn : GamePiece) -> Bool {
@@ -157,7 +169,20 @@ extension MultipeerNetworkSessionViewModel : MCSessionDelegate {
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+                
+        guard peerID != UserDefaults.standard.myself.peerID else {
+            return
+        }
         
+        if let loadedWorldState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: WorldState.self, from: data) {
+            
+            let configuration = ARWorldTrackingConfiguration()
+            configuration.planeDetection = .horizontal
+            configuration.initialWorldMap = loadedWorldState?.currentWorldMap
+            delegate?.networkSession(received: configuration)
+            delegate?.networkSession(received: loadedWorldState!.gameBoard)
+            delegate?.networkSession(received: loadedWorldState!.currentGameState)
+        }
         if let worldMap = try? NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: data) {
             
             let configuration = ARWorldTrackingConfiguration()
@@ -165,11 +190,9 @@ extension MultipeerNetworkSessionViewModel : MCSessionDelegate {
             configuration.initialWorldMap = worldMap
             delegate?.networkSession(received: configuration)
             
-        } else if let playerMove = try? NSKeyedUnarchiver.unarchivedObject(ofClass: PlayerMove.self, from: data) {
+        } else if let playerMove = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NetworkPlayerMove.self, from: data) {
             delegate?.networkSession(received: playerMove!)
-        } else if let gameState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: TicTacToe.self, from: data) {
-            delegate?.networkSession(received: gameState!)
-        }
+        } 
     }
     
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
@@ -214,7 +237,7 @@ extension MultipeerNetworkSessionViewModel : MCNearbyServiceBrowserDelegate {
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-
+        // TODO: update the label to show that another user has left 
     }
     
     

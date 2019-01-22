@@ -74,6 +74,7 @@ extension JoinGameViewController : UITableViewDataSource, UITableViewDelegate {
         if let foundGame = networkSession?.games[indexPath.row] {
         
             networkSession?.join(game: foundGame)
+            networkSession?.isServer = false 
         
             performSegue(withIdentifier: Storyboard.PeerSegue, sender: self)
         }

@@ -24,11 +24,18 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     
     // MARK: - Outlets
     @IBOutlet var sceneView: ARSCNView!
+    
     @IBOutlet weak var statusLabel: UILabel! {
         didSet {
             statusLabel.roundEdges()
         }
     }
+    @IBOutlet weak var resetButton: UIButton! {
+        didSet {
+            resetButton.roundEdges()
+        }
+    }
+    
     @IBOutlet weak var mainScreenView: UIView! {
         didSet {
             mainScreenView.isOpaque = false
@@ -106,12 +113,10 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        //TODO: - Reimplement word tracking check 
-//
-//        guard ARWorldTrackingConfiguration.isSupported else {
-//            fatalError("ARKit is not available on this device.")
-//        }
+
+        guard ARWorldTrackingConfiguration.isSupported else {
+            fatalError("ARKit is not available on this device.")
+        }
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
@@ -201,9 +206,7 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         guard let firstNode = hitTestResults.first, let clickedGridNode = firstNode.node as? GridNode, ticTacToeViewModel.currentGameState == .InProgress else {
             return
         }
-        
-        
-        
+
         tappedNodeToAddGamePiece = clickedGridNode
         
         let playerMove = PlayerMove(row: clickedGridNode.row, column: clickedGridNode.column)
@@ -214,14 +217,31 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         }
         
         ticTacToeViewModel.player(madeMove: playerMove)
+        
+        let networkPlayerMove = NetworkPlayerMove(playerMove: playerMove, tappedNode: clickedGridNode)
 
-        guard let data = try? NSKeyedArchiver.archivedData(withRootObject: playerMove, requiringSecureCoding: true) else {
+        guard let data = try? NSKeyedArchiver.archivedData(withRootObject: networkPlayerMove, requiringSecureCoding: true) else {
             return
         }
         
         multipeerNetworkViewModel.send(data: data)
 
     }
+    
+    // MARK: - Game reset
+    
+    @IBAction func exitCurrentGame(_ sender: Any) {
+        
+        let resetController = UIAlertController.gameResetAlertController { [unowned self] (_) in
+            self.ticTacToeViewModel.resetGame()
+            self.mainScreenIsHidden = false
+            self.multipeerNetworkViewModel.leaveGame()
+        }
+        
+        present(resetController, animated: true, completion: nil)
+
+    }
+    
     
     // MARK: - Navigation
     @IBAction func unwindAsHost(segue: UIStoryboardSegue) {
@@ -237,6 +257,8 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     }
   
 }
+
+// MARK: - TicTacToeGameViewModel Delegate
 
 extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
 
@@ -292,21 +314,40 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
 
 }
 
+// MARK: - MultipeerNetworkSessionViewModel Delegate
+
 extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
-    
-    func networkSession(received gameState: TicTacToe) {
-        ticTacToeViewModel.loadGameStateFrom(existingGame: gameState)
+    func networkSession(received command: NetworkPlayerMove) {
+        let playerMove = command.playerMove
+        let tappedNode = command.tappedNode
+        
+        tappedNodeToAddGamePiece = tappedNode
+        ticTacToeViewModel.player(madeMove: playerMove)
     }
     
-    func networkSession(received command: PlayerMove) {
-        //May need to make sure player isnt self
-        ticTacToeViewModel.player(madeMove: command)
+    func networkSession(received gameBoard: TicTacToeBoard) {
+        print("got game board")
+        //Make sure sender isn't self?
+        self.gameBoard = gameBoard
+    }
+    
+    func networkSession(received gameState: CurrentGameData) {
+        print("got game state")
+        //Make sure sender isn't self?
+        self.ticTacToeViewModel.load(savedGameState: gameState)
+    }
+    
+    func networkSession(received gameState: TicTacToe) {
+        print("got current game session")
+        //Make sure sender isn't self?
+        ticTacToeViewModel.loadGameStateFrom(existingGame: gameState)
     }
     
     func networkSession(received worldTrackingConfiguration: ARWorldTrackingConfiguration) {
         
         if !multipeerNetworkViewModel.isServer {
             sceneView.session.run(worldTrackingConfiguration, options: [.resetTracking, .removeExistingAnchors])
+            print("loaded world session ")
         }
         
     }
@@ -315,24 +356,69 @@ extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
     
     func networkSession(joining player: Player) {
         
-        sceneView.session.getCurrentWorldMap { (worldMap, error) in
+        sceneView.session.getCurrentWorldMap { [unowned self] (worldMap, error) in
+            
             
             guard let map = worldMap else {
                 print("Error: \(error!.localizedDescription)")
                 return
             }
             
-            guard let data = try? NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: true) else {
+            let gameData = self.ticTacToeViewModel.getGameState()
+            let currentWorldState = WorldState(currentGameState: gameData, gameBoard: self.gameBoard, currentWorldConfiguration: map)
+            
+            guard let data = try? NSKeyedArchiver.archivedData(withRootObject: currentWorldState, requiringSecureCoding: true) else {
                 fatalError("can't encode map")
             }
             
             self.multipeerNetworkViewModel.send(data: data)
         }
         
+        print("Player Joined")
+        
     }
     
     func networkSession(leaving player: Player) {
-        //TODO: - Notification that player left 
+        
+        if multipeerNetworkViewModel.isServer {
+            //Display message that player left , game still goes on
+        } else {
+            //Disconnect player from session
+            //Send them back to the main screen
+            //Display an alert that the host left
+            //start browsing again for games
+            //The current game and the screen should also be reset in case they decide to host
+        }
     }
+    
+}
+
+// MARK: - UIAlertController extensions
+
+struct ResetAlertControllerMessages {
+    static let ConfirmationButtonText = "Yes"
+    static let DeclineButtonText = "No"
+    
+    static let TitleMessage = "Exit Game"
+    static let BodyMessage = "Are you sure you want to leave the current game?"
+}
+
+extension UIAlertController {
+    
+    static func gameResetAlertController(withHandler : @escaping (UIAlertAction)->Void) -> UIAlertController {
+        let confirmationAction = UIAlertAction(title: ResetAlertControllerMessages.ConfirmationButtonText, style: .default, handler: withHandler)
+        let declineAction = UIAlertAction(title: ResetAlertControllerMessages.DeclineButtonText, style: .cancel, handler: nil)
+        
+        let resetAlertController = UIAlertController(title: ResetAlertControllerMessages.TitleMessage, message: ResetAlertControllerMessages.BodyMessage, preferredStyle: .alert)
+        resetAlertController.addAction(confirmationAction)
+        resetAlertController.addAction(declineAction)
+        
+        return resetAlertController
+    }
+    
+//    static func playerLeftAlertController(withHandler : @escaping (UIAlertAction)->Void) -> UIAlertController {
+//        //Display alert that a player left
+//        
+//    }
     
 }

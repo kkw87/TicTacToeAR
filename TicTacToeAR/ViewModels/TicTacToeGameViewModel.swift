@@ -18,20 +18,17 @@ protocol TicTacToeGameViewModelDelegate {
     
 }
 
-enum GameState {
-    case PlacingBoard
-    case InProgress
-    case GameOver
-    case FindingBoardLocation
+enum GameState : String, Codable {
+    case PlacingBoard = "Click on the grid to place the board"
+    case InProgress = "Game in progress"
+    case GameOver = "Would you like to reset the game?"
+    case FindingBoardLocation = "Find a flat surface to place the board"
 }
 
 class TicTacToeGameViewModel {
 
     // MARK: - Constants
     struct StringLiterals {
-        
-        static let FindSurfaceMessage = "Find a flat surface to place the board"
-        static let PlaceGridMessage = "Click on the grid to place the board"
         
         static let XPlayerTurnMessage = "X player's turn"
         static let OPlayerTurnMessage = "O player's turn"
@@ -64,26 +61,24 @@ class TicTacToeGameViewModel {
         }
     }
     
+    
     private(set) var currentGameState : GameState {
         didSet {
             switch currentGameState {
             case .FindingBoardLocation :
-                delegate?.updateGameWith(statusText: StringLiterals.FindSurfaceMessage)
+                delegate?.updateGameWith(statusText: currentGameState.rawValue)
             case .InProgress :
                 delegate?.clearPlacingNodesForGameStart()
-                delegate?.updateGameWith(statusText: playerTurnMessage)
+                delegate?.updateGameWith(statusText: currentGameState.rawValue)
             case .PlacingBoard :
-                delegate?.updateGameWith(statusText: StringLiterals.PlaceGridMessage)
+                delegate?.updateGameWith(statusText: currentGameState.rawValue)
             case .GameOver :
                 
                 if let gameOverMessage = gameEndingMessage {
                     
                     delegate?.presentGameEndingScreenWith(titleMessage: gameOverMessage.titleMessage, bodyMessage: gameOverMessage.bodyMessage, completion: { [unowned self] in
                         
-                        self.delegate?.resetViewsForNewGame()
-                        self.ticTacToeGame = TicTacToe()
-                        self.boardPlaced = false
-                        self.boardPlaneFound = false
+                        self.resetGame()
                     })
                     
                 }
@@ -102,7 +97,6 @@ class TicTacToeGameViewModel {
     
     var delegate : TicTacToeGameViewModelDelegate?
     
-    //player messager
     var currentPlayer : GamePiece {
         return ticTacToeGame.currentPlayerTurn
     }
@@ -157,9 +151,28 @@ class TicTacToeGameViewModel {
         }
     }
     
+    func resetGame() {
+        delegate?.resetViewsForNewGame()
+        ticTacToeGame = TicTacToe()
+        boardPlaced = false
+        boardPlaneFound = false
+    }
+    
     // MARK: - Game state functions
     func loadGameStateFrom(existingGame : TicTacToe) {
         ticTacToeGame = existingGame
+    }
+    
+    func getGameState() -> CurrentGameData {
+        let savedGameState = CurrentGameData(gameState: currentGameState, gameModel: ticTacToeGame, boardPlaced: boardPlaced, planeFound: boardPlaneFound)
+        return savedGameState
+    }
+    
+    func load(savedGameState : CurrentGameData) {
+        ticTacToeGame = savedGameState.currentGame
+        currentGameState = savedGameState.gameState
+        boardPlaced = savedGameState.boardPlaced
+        boardPlaneFound = savedGameState.boardPlaneFound
     }
     
 }

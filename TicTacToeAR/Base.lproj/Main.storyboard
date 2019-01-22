@@ -192,6 +192,19 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fqQ-kv-uTl">
+                                <rect key="frame" x="313" y="20" width="30" height="30"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.5" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="PXf-2z-KhH"/>
+                                    <constraint firstAttribute="width" constant="46" id="RhI-zF-BeY"/>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="30" id="ome-Mr-88X"/>
+                                </constraints>
+                                <state key="normal" title="X"/>
+                                <connections>
+                                    <action selector="exitCurrentGame:" destination="BV1-FR-VrT" eventType="touchUpInside" id="ZoZ-ZT-r1c"/>
+                                </connections>
+                            </button>
                             <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="oFs-YI-PaD">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                                 <connections>
@@ -203,6 +216,8 @@
                         <constraints>
                             <constraint firstItem="oFs-YI-PaD" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="FD0-EL-6hC"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="GsS-dJ-CKf"/>
+                            <constraint firstItem="fQZ-KI-GVf" firstAttribute="trailing" secondItem="fqQ-kv-uTl" secondAttribute="trailing" constant="16" id="KLc-wE-l0Q"/>
+                            <constraint firstItem="fqQ-kv-uTl" firstAttribute="top" secondItem="fQZ-KI-GVf" secondAttribute="top" id="Rnn-Re-bK8"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="VpT-BR-CcM"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="XyZ-9z-H8e"/>
                             <constraint firstItem="oFs-YI-PaD" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="ahO-pu-jyj"/>
@@ -216,6 +231,7 @@
                     </view>
                     <connections>
                         <outlet property="mainScreenView" destination="oFs-YI-PaD" id="cfC-aF-AVa"/>
+                        <outlet property="resetButton" destination="fqQ-kv-uTl" id="LUu-N8-8n4"/>
                         <outlet property="sceneView" destination="BrB-h1-WRS" id="5nT-qQ-ynl"/>
                         <outlet property="statusLabel" destination="i09-Ut-9GC" id="iOg-yC-Wfs"/>
                     </connections>
