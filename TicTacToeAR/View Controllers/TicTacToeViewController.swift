@@ -12,19 +12,28 @@ import ARKit
 import MultipeerConnectivity
 
 class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
-
+    
     // MARK: - Animation Constants
     struct Animation {
         static let MainViewFadeOutTime = 0.5
+        static let FadeOutTimeDelay : TimeInterval = 3
     }
     
     struct Storyboard {
         static let JoinGameSegue = "Join Segue"
+        static let PlayerJoinedLabelMessage = "Player Joined"
+        static let PlayerLeftLabelMessage = "Player Left"
+        static let HostResetMessage = "Waiting for host to reset the game"
     }
     
     // MARK: - Outlets
     @IBOutlet var sceneView: ARSCNView!
     
+    @IBOutlet weak var playerJoinedLabel: UILabel! {
+        didSet {
+            playerJoinedLabel.roundEdges()
+        }
+    }
     @IBOutlet weak var statusLabel: UILabel! {
         didSet {
             statusLabel.roundEdges()
@@ -45,18 +54,22 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     
     // MARK: - Model
     
+    //View Model of the Tic Tac Toe Game
     private lazy var ticTacToeViewModel : TicTacToeGameViewModel = {
-       var tttVM = TicTacToeGameViewModel(ticTacToe: TicTacToe())
+        var tttVM = TicTacToeGameViewModel(ticTacToe: TicTacToe())
         tttVM.delegate = self
         return tttVM
     }()
     
-    var multipeerNetworkViewModel = MultipeerNetworkSessionViewModel(myself: UserDefaults.standard.myself, server: true)
+    var networkManager = MultipeerNetworkSessionViewModel(myself: UserDefaults.standard.myself, server: true)
     
     // MARK: - Instance variables
-
+    
     //The gameboard in which pieces will be placed
     private var gameBoard = TicTacToeBoard()
+    
+    //The Encoder used to send player moves, game and world state to other devices
+    private var networkJsonEncoder = JSONEncoder()
     
     //The current anchor in which the user is currently facing , this will be reset everytime the camera angle changes
     private var currentAnchor : ARPlaneAnchor? {
@@ -88,6 +101,26 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         }
     }
     
+    private var playerStatusText = Storyboard.PlayerJoinedLabelMessage {
+        didSet {
+            DispatchQueue.main.async {
+                
+                self.playerJoinedLabel.text = self.playerStatusText
+                
+                UIView.animate(withDuration: Animation.MainViewFadeOutTime, delay: 0, options: .curveLinear, animations: {
+                    self.playerJoinedLabel.alpha = 1
+                }) { (completed) in
+                    
+                    UIView.animate(withDuration: Animation.MainViewFadeOutTime, delay: Animation.FadeOutTimeDelay, options: .curveLinear, animations: {
+                        self.playerJoinedLabel.alpha = 0
+                    }, completion: nil)
+                    
+                }
+            }
+
+        }
+    }
+    
     //The current node in which the board will be added.
     private var currentNode : SCNNode? {
         didSet {
@@ -98,9 +131,6 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         }
     }
     
-    //Store the tapped node, we update this when we want to add a game piece(x or o)
-    private var tappedNodeToAddGamePiece : GridNode?
-    
     //MARK: - VC Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -108,20 +138,21 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         sceneView.delegate = self
         sceneView.autoenablesDefaultLighting = true
         sceneView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(userTap(recognizer:))))
-        multipeerNetworkViewModel.delegate = self
+        networkManager.delegate = self
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
-        guard ARWorldTrackingConfiguration.isSupported else {
-            fatalError("ARKit is not available on this device.")
-        }
+        
+        // TODO: - REENABLE AR WORLD TRACKING
+        //        guard ARWorldTrackingConfiguration.isSupported else {
+        //            fatalError("ARKit is not available on this device.")
+        //        }
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
-
+        
         // Run the view's session
         sceneView.session.run(configuration)
     }
@@ -132,26 +163,27 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         // Pause the view's session
         sceneView.session.pause()
     }
-
+    
     // MARK: - ARSCNViewDelegate
     
-       func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        
         guard let planeAnchor = anchor as? ARPlaneAnchor else {
             return
         }
         
         //If we detect a node or anchor, set it incase the user decides to place a gameboard node
         switch ticTacToeViewModel.currentGameState {
-        case .FindingBoardLocation :
+            
+        case BoardPlacementState.FindingBoardLocation :
             fallthrough
-        case .PlacingBoard:
+        case BoardPlacementState.PlacingBoard:
             currentAnchor = planeAnchor
             currentNode = node
         default:
             break
         }
-
+        
     }
     
     // MARK: - User interaction
@@ -161,85 +193,99 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
         
         switch ticTacToeViewModel.currentGameState {
             
-        case .PlacingBoard :
+        case BoardPlacementState.PlacingBoard :
             
             let hitTestResults = sceneView.hitTest(tapLocation, types: .existingPlaneUsingExtent)
             
             guard currentAnchor != nil, let hitTestResult = hitTestResults.first else {
                 break
-            
+                
             }
             
+            networkManager.isMyTurn = true
             setGameBoardAt(userPressedLocation: hitTestResult)
+            sendGameStateToPeers()
             
-        case .InProgress :
+        case BoardPlacementState.InProgress :
             
             let hitTestResults = sceneView.hitTest(tapLocation, options: [SCNHitTestOption.firstFoundOnly: false, SCNHitTestOption.rootNode : gameBoard])
-           userPressedMove(atLocation: hitTestResults)
+            userPressedNode(atLocation: hitTestResults)
             
             break
         default :
             break
         }
-
+        
         
     }
     
-    // MARK: - Game placement functions
+    // MARK: - Game placement
+    
+    //Set game board using hit test results
     private func setGameBoardAt(userPressedLocation hitTestResult : ARHitTestResult) {
         
-        gameBoard.position = SCNVector3Make(hitTestResult.worldTransform.columns.3.x, hitTestResult.worldTransform.columns.3.y, hitTestResult.worldTransform.columns.3.z)
+        let hitResultToVector = SCNVector3Make(hitTestResult.worldTransform.columns.3.x, hitTestResult.worldTransform.columns.3.y, hitTestResult.worldTransform.columns.3.z)
+        setGameBoardAt(location: hitResultToVector)
+        
+    }
+    
+    //Set game board with location from network data
+    private func setGameBoardAt(location : SCNVector3) {
+        
+        gameBoard.position = location
         sceneView.scene.rootNode.addChildNode(gameBoard)
         let action = SCNAction.fadeIn(duration: 0.5)
         gameBoard.runAction(action)
         ticTacToeViewModel.boardPlaced = true
         
         // Start advertising multipeer availability
-        if multipeerNetworkViewModel.isServer {
-            multipeerNetworkViewModel.startAdvertising()
+        if networkManager.isServer {
+            networkManager.startAdvertising()
         }
-        
     }
     
-    private func userPressedMove(atLocation hitTestResults: [SCNHitTestResult]) {
+    private func userPressedNode(atLocation hitTestResults: [SCNHitTestResult]) {
         
-        guard let firstNode = hitTestResults.first, let clickedGridNode = firstNode.node as? GridNode, ticTacToeViewModel.currentGameState == .InProgress else {
-            return
-        }
-
-        tappedNodeToAddGamePiece = clickedGridNode
-        
-        let playerMove = PlayerMove(row: clickedGridNode.row, column: clickedGridNode.column)
-        
-        // Make sure it is your turn before a move is processed 
-        guard multipeerNetworkViewModel.isMyTurn(currentPlayerTurn: ticTacToeViewModel.currentPlayer) else {
+        guard let firstNode = hitTestResults.first, let clickedGridNode = firstNode.node as? GridNode, ticTacToeViewModel.currentGameState == BoardPlacementState.InProgress else {
             return
         }
         
-        ticTacToeViewModel.player(madeMove: playerMove)
+        let currentPlayerSymbol = ticTacToeViewModel.currentPlayer
+        let playerMove = PlayerMove(row : clickedGridNode.row, column : clickedGridNode.column)
         
-        let networkPlayerMove = NetworkPlayerMove(playerMove: playerMove, tappedNode: clickedGridNode)
-
-        guard let data = try? NSKeyedArchiver.archivedData(withRootObject: networkPlayerMove, requiringSecureCoding: true) else {
+        guard networkManager.isMyTurn else {
             return
         }
         
-        multipeerNetworkViewModel.send(data: data)
-
+        guard ticTacToeViewModel.playerMadeMoveWith(move: playerMove) else {
+            return
+        }
+        
+        networkManager.isMyTurn = networkManager.otherConnectedPlayers ? false : true
+        clickedGridNode.addToNode(gamePieceSymbol: currentPlayerSymbol)
+        
+        do {
+            let playerMoveData = try networkJsonEncoder.encode(playerMove)
+            networkManager.send(data: playerMoveData)
+            print("sending player move")
+            
+        } catch {
+            print("Unable to encode player move!")
+        }
+        
+        
     }
     
     // MARK: - Game reset
     
     @IBAction func exitCurrentGame(_ sender: Any) {
-        
-        let resetController = UIAlertController.gameResetAlertController { [unowned self] (_) in
-            self.ticTacToeViewModel.resetGame()
-            self.mainScreenIsHidden = false
-            self.multipeerNetworkViewModel.leaveGame()
-        }
-        
-        present(resetController, animated: true, completion: nil)
-
+          let resetController = UIAlertController.gameResetAlertController { [unowned self] (_) in
+                self.ticTacToeViewModel.resetGame()
+                self.mainScreenIsHidden = false
+                self.networkManager.leaveGame()
+            }
+            
+            present(resetController, animated: true, completion: nil)
     }
     
     
@@ -247,33 +293,38 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     @IBAction func unwindAsHost(segue: UIStoryboardSegue) {
         
         mainScreenIsHidden = true
-        multipeerNetworkViewModel.isServer = true 
+        networkManager.isServer = true 
     }
     
     @IBAction func unwindAsPeer(segue: UIStoryboardSegue) {
         //User joined as a peer
         mainScreenIsHidden = true
-        multipeerNetworkViewModel.isServer = false
+        networkManager.isServer = false
     }
-  
+    
 }
 
 // MARK: - TicTacToeGameViewModel Delegate
 
 extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
-
     
     func presentGameEndingScreenWith(titleMessage: String, bodyMessage: String, completion: @escaping () -> Void) {
         
-        let drawGameAlertVC = UIAlertController(title: titleMessage, message: bodyMessage, preferredStyle: .alert)
-        drawGameAlertVC.addAction(UIAlertAction(title: "Yes", style: .default, handler: {[unowned self] (_) in
-            let fadeOutAction = SCNAction.fadeOut(duration: 0.5)
-            self.gameBoard.runAction(fadeOutAction, completionHandler: {
+        if networkManager.isServer {
+            let drawGameAlertVC = UIAlertController(title: titleMessage, message: bodyMessage, preferredStyle: .alert)
+            drawGameAlertVC.addAction(UIAlertAction(title: "Yes", style: .default, handler: {[unowned self] (_) in
                 completion()
-            })
-        }))
-        drawGameAlertVC.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
-        present(drawGameAlertVC, animated: true, completion: nil)
+                self.gameBoard.resetBoard()
+            }))
+            drawGameAlertVC.addAction(UIAlertAction(title: "No", style: .cancel, handler: nil))
+            present(drawGameAlertVC, animated: true, completion: nil)
+        } else {
+            
+            self.playerStatusText = titleMessage
+            updateGameWith(statusText: Storyboard.HostResetMessage)
+            self.gameBoard.resetBoard()
+            
+        }
         
     }
     
@@ -283,7 +334,7 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
             self?.statusLabel.text = statusText
         }
     }
-
+    
     
     func clearPlacingNodesForGameStart() {
         currentNode?.removeFromParentNode()
@@ -294,58 +345,49 @@ extension TicTacToeViewController : TicTacToeGameViewModelDelegate {
         gameBoard.removeFromParentNode()
         gameBoard = TicTacToeBoard()
         currentNode = nil
-        tappedNodeToAddGamePiece = nil
     }
     
-    func updateGameBoardWithPlayerMovement(withGamePiece: GamePiece) {
-        
-        guard tappedNodeToAddGamePiece != nil else {
-            return
-        }
-        
-        let newGamePieceNode = GamePieceNode(currentGamePiece: withGamePiece)
-        newGamePieceNode.opacity = 0
-        let action = SCNAction.fadeIn(duration: 0.5)
-        newGamePieceNode.runAction(action)
-        
-        tappedNodeToAddGamePiece!.addChildNode(newGamePieceNode)
-        
-    }
-
 }
 
 // MARK: - MultipeerNetworkSessionViewModel Delegate
 
 extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
-    func networkSession(received command: NetworkPlayerMove) {
-        let playerMove = command.playerMove
-        let tappedNode = command.tappedNode
+    
+    func networkSession(received gameBoardState: GameBoardState) {
+        let x = gameBoardState.boardX
+        let y = gameBoardState.boardY
+        let z = gameBoardState.boardZ
         
-        tappedNodeToAddGamePiece = tappedNode
-        ticTacToeViewModel.player(madeMove: playerMove)
+        setGameBoardAt(location: SCNVector3Make(x, y, z))
+        self.gameBoard.updateNodesWith(gridNodeStates: gameBoardState.boardNodes)
     }
     
-    func networkSession(received gameBoard: TicTacToeBoard) {
-        print("got game board")
-        //Make sure sender isn't self?
-        self.gameBoard = gameBoard
+    
+    func networkSession(received command: PlayerMove) {
+        
+        let currentPlayerSymbol = ticTacToeViewModel.currentPlayer
+        guard ticTacToeViewModel.playerMadeMoveWith(move: command) else {
+            print("Invalid move from other player, ignoring...")
+            return
+        }
+        
+        if let nodeToUpdate = gameBoard.nodeAtPosition(row: command.row, column: command.column) {
+            nodeToUpdate.addToNode(gamePieceSymbol: currentPlayerSymbol)
+        } else {
+            print("Unable to find node in response to a network player move")
+        }
     }
     
-    func networkSession(received gameState: CurrentGameData) {
-        print("got game state")
-        //Make sure sender isn't self?
+    func networkSession(received gameState: GameData) {
         self.ticTacToeViewModel.load(savedGameState: gameState)
+        networkManager.isMyTurn = self.ticTacToeViewModel.currentPlayer == networkManager.myGamePiece ? true : false
+        
     }
     
-    func networkSession(received gameState: TicTacToe) {
-        print("got current game session")
-        //Make sure sender isn't self?
-        ticTacToeViewModel.loadGameStateFrom(existingGame: gameState)
-    }
     
     func networkSession(received worldTrackingConfiguration: ARWorldTrackingConfiguration) {
         
-        if !multipeerNetworkViewModel.isServer {
+        if !networkManager.isServer {
             sceneView.session.run(worldTrackingConfiguration, options: [.resetTracking, .removeExistingAnchors])
             print("loaded world session ")
         }
@@ -354,10 +396,44 @@ extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
     
     //Also send the currentGame state 
     
+    // MARK: - Player joining
     func networkSession(joining player: Player) {
         
+        //If another player joins, check whether or not it is actually your turn, if they join when it is their tunr, you will be unable to make a move
+        if networkManager.myGamePiece != ticTacToeViewModel.currentPlayer {
+            networkManager.isMyTurn = false
+        }
+        
+        if networkManager.isServer {
+            playerStatusText = Storyboard.PlayerJoinedLabelMessage
+        }
+        
+        sendGameStateToPeers()
+        
+    }
+    
+    func networkSession(leaving player: Player) {
+        
+        //When a player leaves, we want to
+        networkManager.isMyTurn = true
+        playerStatusText = Storyboard.PlayerLeftLabelMessage
+        if self.networkManager.isServer {
+            networkManager.startAdvertising()
+        } else {
+            self.networkManager.leaveGame()
+            DispatchQueue.main.async {
+                self.mainScreenIsHidden = false
+            }
+            self.ticTacToeViewModel.resetGame()
+        }
+    }
+    
+    func sendGameStateToPeers() {
         sceneView.session.getCurrentWorldMap { [unowned self] (worldMap, error) in
             
+            guard self.networkManager.isServer else {
+                return
+            }
             
             guard let map = worldMap else {
                 print("Error: \(error!.localizedDescription)")
@@ -365,37 +441,31 @@ extension TicTacToeViewController : MultipeerNetworkSessionViewModelDelegate {
             }
             
             let gameData = self.ticTacToeViewModel.getGameState()
-            let currentWorldState = WorldState(currentGameState: gameData, gameBoard: self.gameBoard, currentWorldConfiguration: map)
             
-            guard let data = try? NSKeyedArchiver.archivedData(withRootObject: currentWorldState, requiringSecureCoding: true) else {
-                fatalError("can't encode map")
+            do {
+                let worldMapData = try NSKeyedArchiver.archivedData(withRootObject: map, requiringSecureCoding: false)
+                print("Archived Data, attempting to send...")
+                
+                self.networkManager.send(data: worldMapData)
+            } catch {
+                print("Capture world error: \(error)")
             }
             
-            self.multipeerNetworkViewModel.send(data: data)
-        }
-        
-        print("Player Joined")
-        
-    }
-    
-    func networkSession(leaving player: Player) {
-        
-        
-        
-        if multipeerNetworkViewModel.isServer {
+            do {
+                let gameData = try self.networkJsonEncoder.encode(gameData)
+                self.networkManager.send(data: gameData)
+            } catch {
+                print("Unable to encode game data")
+            }
             
-            let hostResetAlertVC = UIAlertController.playerLeftAlertController()
-            present(hostResetAlertVC, animated: true, completion: nil)
-        } else {
+            let currentGameBoardState = self.gameBoard.currentBoardState()
             
-            let playerResetAlertVC = UIAlertController.playerLeftAlertController()
-            present(playerResetAlertVC, animated: true, completion: nil)
-            
-            multipeerNetworkViewModel.leaveGame()
-            mainScreenIsHidden = false
-            ticTacToeViewModel.resetGame()
-            multipeerNetworkViewModel.startBrowsing()
-            
+            do {
+                let boardStateData = try self.networkJsonEncoder.encode(currentGameBoardState)
+                self.networkManager.send(data: boardStateData)
+            } catch {
+                print("Unable to encode game board state data")
+            }
         }
     }
     
@@ -428,14 +498,4 @@ extension UIAlertController {
         
         return resetAlertController
     }
-    
-    static func playerLeftAlertController() -> UIAlertController {
-        
-        let confirmationAction = UIAlertAction(title: ResetAlertControllerMessages.PlayerLeftButtonText, style: .default, handler: nil)
-        let playerLeftAlertController = UIAlertController(title: ResetAlertControllerMessages.PlayerLeftTitleMessage, message: ResetAlertControllerMessages.PlayerLeftBodyMessage, preferredStyle: .alert)
-        playerLeftAlertController.addAction(confirmationAction)
-        
-        return playerLeftAlertController
-    }
-    
 }

@@ -18,14 +18,14 @@ class GamePieceNode : SCNNode  {
     }
     
     // MARK: - Init
-    init(currentGamePiece : GamePiece) {
+    init(currentGamePiece : String) {
         super.init()
         
         let sceneName : String
         let modelScale : SCNVector3
         let modelPosition : SCNVector3
         switch currentGamePiece {
-        case .X:
+        case GamePiece.X:
             //Patrick model
             sceneName = Constants.XPieceName
             modelScale = SCNVector3(0.040, 0.040, 0.040)

@@ -18,6 +18,8 @@ class GridNode : SCNNode {
         static let BoxHeight : CGFloat = 0.07
         static let BoxLength : CGFloat = 0.25
         static let BoxChamfer : CGFloat = 0.01
+        
+        static let GamePieceFadeInTime : TimeInterval = 0.5
     }
     
     
@@ -28,6 +30,9 @@ class GridNode : SCNNode {
     
     let row : Int
     let column : Int
+    
+    private(set) var nodeSymbol = GamePiece.Empty
+    private var symbolNode : GamePieceNode?
     
     init(column : Int, row : Int) {
         self.row = row
@@ -42,6 +47,26 @@ class GridNode : SCNNode {
         
     }
     
+    func addToNode(gamePieceSymbol : String) {
+
+        symbolNode?.removeFromParentNode()
+        
+        //Make sure the node is a game piece 
+        if gamePieceSymbol == GamePiece.O || gamePieceSymbol == GamePiece.X {
+            let newGamePieceNode = GamePieceNode(currentGamePiece: gamePieceSymbol)
+            newGamePieceNode.opacity = 0
+            let action = SCNAction.fadeIn(duration: Constants.GamePieceFadeInTime)
+            newGamePieceNode.runAction(action)
+            self.addChildNode(newGamePieceNode)
+            nodeSymbol = gamePieceSymbol
+            symbolNode = newGamePieceNode
+        }
+    }
+    
+    func removeSymbolNode() {
+        symbolNode?.removeFromParentNode()
+    }
+        
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

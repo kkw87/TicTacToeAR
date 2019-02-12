@@ -181,6 +181,17 @@
                             <arscnView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="BrB-h1-WRS">
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                             </arscnView>
+                            <label opaque="NO" userInteractionEnabled="NO" alpha="0.0" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Player Joined" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ipo-xd-m8Q">
+                                <rect key="frame" x="112.5" y="26" width="150" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.5" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="Onj-2W-o7v"/>
+                                    <constraint firstAttribute="height" constant="30" id="Rm0-eh-rz0"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleCallout"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Find a flat surface to place the board" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i09-Ut-9GC">
                                 <rect key="frame" x="37.5" y="607" width="300" height="30"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.5" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -221,16 +232,19 @@
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="VpT-BR-CcM"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="XyZ-9z-H8e"/>
                             <constraint firstItem="oFs-YI-PaD" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="ahO-pu-jyj"/>
+                            <constraint firstItem="Ipo-xd-m8Q" firstAttribute="top" secondItem="fQZ-KI-GVf" secondAttribute="top" constant="6" id="eKh-e5-t6w"/>
                             <constraint firstItem="oFs-YI-PaD" firstAttribute="top" secondItem="U0K-SW-4ec" secondAttribute="top" id="edn-kL-BMc"/>
                             <constraint firstItem="i09-Ut-9GC" firstAttribute="centerX" secondItem="BrB-h1-WRS" secondAttribute="centerX" id="nCr-Rr-FOh"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="top" secondItem="U0K-SW-4ec" secondAttribute="top" id="rJc-2c-zQA"/>
                             <constraint firstItem="fQZ-KI-GVf" firstAttribute="bottom" secondItem="i09-Ut-9GC" secondAttribute="bottom" constant="30" id="wPr-B1-fZr"/>
+                            <constraint firstItem="Ipo-xd-m8Q" firstAttribute="centerX" secondItem="BrB-h1-WRS" secondAttribute="centerX" id="wnU-lh-S4V"/>
                             <constraint firstItem="oFs-YI-PaD" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="yAf-uw-9dr"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="fQZ-KI-GVf"/>
                     </view>
                     <connections>
                         <outlet property="mainScreenView" destination="oFs-YI-PaD" id="cfC-aF-AVa"/>
+                        <outlet property="playerJoinedLabel" destination="Ipo-xd-m8Q" id="dBN-8i-fI7"/>
                         <outlet property="resetButton" destination="fqQ-kv-uTl" id="LUu-N8-8n4"/>
                         <outlet property="sceneView" destination="BrB-h1-WRS" id="5nT-qQ-ynl"/>
                         <outlet property="statusLabel" destination="i09-Ut-9GC" id="iOg-yC-Wfs"/>

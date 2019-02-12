@@ -48,8 +48,15 @@ class MainScreenViewController: UIViewController {
             guard let parentVC = parent as? TicTacToeViewController, let destinationVC = segue.destination as? JoinGameViewController else {
                 break
             }
-            destinationVC.networkSession = parentVC.multipeerNetworkViewModel
             
+            destinationVC.networkSession = parentVC.networkManager
+            destinationVC.networkSession?.isServer = false            
+        case Storyboard.HostSegue:
+            guard let destinationVC = segue.destination as? TicTacToeViewController else {
+                break
+            }
+            
+            destinationVC.networkManager.isMyTurn = true 
         default:
             break
         }

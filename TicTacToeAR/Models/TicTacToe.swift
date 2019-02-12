@@ -9,66 +9,31 @@
 import Foundation
 
 
-// MARK: - GamePiece Declaration
-enum GamePiece : CustomStringConvertible {
-    case X
-    case O
-    case Empty
-    
-    var oppositePiece : GamePiece {
-        switch self {
-        case .X:
-            return .O
-        case .O:
-            return .X
-        default:
-            return .Empty
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .X :
-            return "X"
-        case .O :
-            return "O"
-        case .Empty :
-            return "Empty"
-        }
-    }
-}
-
-class TicTacToe : NSObject, NSCoding {
-    
-    struct CodingKeys {
-        static let BoardKey = "board"
-        static let MoveRemaining = "key"
-        static let CurrentTurn = "turn"
-    }
+class TicTacToe : NSObject, Codable {
     
     // MARK: - Game conditions
-    private(set) var board : [[GamePiece]]
+    private(set) var board : [[String]]
     
     private(set) var currentMovesRemaining : Int
-    private(set) var currentPlayerTurn : GamePiece
+    private(set) var currentPlayerTurn : String
 
     var gameWon : Bool {
         // Row 0 All Matching victory condition
-        return board[0][0] == board[0][1] && board[0][1] == board[0][2] && board[0][0] != .Empty ||
+        return board[0][0] == board[0][1] && board[0][1] == board[0][2] && board[0][0] != GamePiece.Empty ||
         // Row 1 All Matching victory condition
-        board[1][0] == board[1][1] && board[1][1] == board[1][2] && board[1][0] != .Empty ||
+        board[1][0] == board[1][1] && board[1][1] == board[1][2] && board[1][0] != GamePiece.Empty ||
         // Row 2 All Matching victory condition
-        board[2][0] == board[2][1] && board[2][1] == board[2][2] && board[2][0] != .Empty ||
+        board[2][0] == board[2][1] && board[2][1] == board[2][2] && board[2][0] != GamePiece.Empty ||
         // Column 1 All Matching victory condition
-        board[0][0] == board[1][0] && board[1][0] == board[2][0] && board[0][0] != .Empty ||
+        board[0][0] == board[1][0] && board[1][0] == board[2][0] && board[0][0] != GamePiece.Empty ||
         // Column 2 All Matching victory condition
-        board[0][1] == board[1][1] && board[1][1] == board[2][1] && board[0][1] != .Empty ||
+        board[0][1] == board[1][1] && board[1][1] == board[2][1] && board[0][1] != GamePiece.Empty ||
         // Column 3 All Matching victory condition
-        board[0][2] == board[1][2] && board[1][2] == board[2][2] && board[0][2] != .Empty ||
+        board[0][2] == board[1][2] && board[1][2] == board[2][2] && board[0][2] != GamePiece.Empty ||
         // Diag 1 All Matching victory condition
-        board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != .Empty ||
+        board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[0][0] != GamePiece.Empty ||
         // Diag 2 All Matching victory condition
-        board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != .Empty
+        board[0][2] == board[1][1] && board[1][1] == board[2][0] && board[0][2] != GamePiece.Empty
     }
     
     var gameDraw : Bool {
@@ -76,12 +41,12 @@ class TicTacToe : NSObject, NSCoding {
     }
     
     // MARK: - Init
-    init(boardPieces : [[GamePiece]] =
+    init(boardPieces : [[String]] =
         [[GamePiece.Empty, GamePiece.Empty, GamePiece.Empty],
          [GamePiece.Empty, GamePiece.Empty, GamePiece.Empty],
          [GamePiece.Empty, GamePiece.Empty, GamePiece.Empty]],
          currentMovesRemaining : Int = 9,
-         startingPlayer : GamePiece = .X) {
+         startingPlayer : String = GamePiece.X) {
         
         self.board = boardPieces
         self.currentMovesRemaining = currentMovesRemaining
@@ -100,34 +65,14 @@ class TicTacToe : NSObject, NSCoding {
             return false
         }
         
-        guard board[position.column][position.row] == .Empty else {
+        guard board[position.column][position.row] == GamePiece.Empty else {
             return false
         }
         
         board[position.column][position.row] = currentPlayerTurn
-        currentPlayerTurn = currentPlayerTurn.oppositePiece
+        currentPlayerTurn = currentPlayerTurn == GamePiece.X ? GamePiece.O : GamePiece.X
         currentMovesRemaining -= 1
         
         return true
     }
-    
-    //MARK: - NSCoding Protocol
-    func encode(with aCoder: NSCoder) {
-        aCoder.encode(board, forKey: CodingKeys.BoardKey)
-        aCoder.encode(currentMovesRemaining, forKey: CodingKeys.MoveRemaining)
-        aCoder.encode(currentPlayerTurn, forKey: CodingKeys.CurrentTurn)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        board = aDecoder.decodeObject(forKey: CodingKeys.BoardKey) as! [[GamePiece]]
-        currentPlayerTurn = aDecoder.decodeObject(forKey: CodingKeys.CurrentTurn) as! GamePiece
-        currentMovesRemaining = aDecoder.decodeInteger(forKey: CodingKeys.MoveRemaining)
-    }
-    
-}
-
-extension TicTacToe : NSSecureCoding {
-    static var supportsSecureCoding: Bool {
-        return true
-    } 
 }

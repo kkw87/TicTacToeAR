@@ -10,17 +10,18 @@ import MultipeerConnectivity
 import ARKit
 
 
-
+// MARK: - MultipeerNetworkSessionViewModelDelegate declaration
 protocol MultipeerNetworkSessionViewModelDelegate {
     
-    func networkSession(received command: NetworkPlayerMove)
+    func networkSession(received command: PlayerMove)
     func networkSession(received worldConfiguration : ARWorldTrackingConfiguration)
-    func networkSession(received gameBoard : TicTacToeBoard)
-    func networkSession(received gameState : CurrentGameData)
+    func networkSession(received gameBoardState : GameBoardState)
+    func networkSession(received gameState : GameData)
     func networkSession(joining player: Player)
     func networkSession(leaving player: Player)
 }
 
+// MARK: - MultipeerNetworkSessionViewModelDataSource declaration
 protocol MultipeerNetworkSessionViewModelDataSource {
     func gamesUpdated()
 }
@@ -29,17 +30,24 @@ private let maxPeers = 2
 
 class MultipeerNetworkSessionViewModel : NSObject {
     
+    // MARK: - Constants
     struct Constants {
-        static let ConnectionTimeout : Double = 30
+        static let ConnectionTimeout : Double = 10
     }
     
     // MARK: - Model
-    private let hostSession : MCSession
+    private let mainSession : MCSession
     private let serviceAdvertiser : MCNearbyServiceAdvertiser
     private let serviceBrowser : MCNearbyServiceBrowser
     
     // MARK: - Instance Variables
     let myself : Player
+    
+    var isMyTurn : Bool = true
+    
+    var otherConnectedPlayers : Bool {
+        return mainSession.connectedPeers.count > 0
+    }
     
     var isServer : Bool {
         didSet {
@@ -53,13 +61,12 @@ class MultipeerNetworkSessionViewModel : NSObject {
         }
     }
     
+    private let jsonDecoder = JSONDecoder()
+    
     var delegate : MultipeerNetworkSessionViewModelDelegate?
     var dataSource : MultipeerNetworkSessionViewModelDataSource?
     
-    private var currentPlayers : Set<Player> = []
- 
-    private var myGamePiece : GamePiece
-    // TODO: - Make a variable to determine whose turn it is
+    private(set) var myGamePiece : String
     
     // MARK: - Inits
     init(myself : Player, server : Bool) {
@@ -69,25 +76,33 @@ class MultipeerNetworkSessionViewModel : NSObject {
         
         self.myGamePiece = server ? GamePiece.X : GamePiece.O
         
-        hostSession = MCSession(peer: myself.peerID, securityIdentity: nil, encryptionPreference: .required)
-        
+        mainSession = MCSession(peer: myself.peerID, securityIdentity: nil, encryptionPreference: .required)
         serviceAdvertiser = MCNearbyServiceAdvertiser(peer: myself.peerID, discoveryInfo: nil, serviceType: MultipeerConstants.playerService)
-        
         serviceBrowser = MCNearbyServiceBrowser(peer: myself.peerID, serviceType: MultipeerConstants.playerService)
         
         super.init()
         
-        hostSession.delegate = self
+        mainSession.delegate = self
         serviceAdvertiser.delegate = self
         serviceBrowser.delegate = self
-
+        
+    }
+    
+    deinit {
+        serviceAdvertiser.stopAdvertisingPeer()
+        serviceBrowser.stopBrowsingForPeers()
     }
     
     // MARK: - Data sending functions
     func send(data : Data) {
+        
+        guard mainSession.connectedPeers.count > 0 else {
+            return
+        }
+        
         do {
-            try hostSession.send(data, toPeers: hostSession.connectedPeers, with: .reliable)
-        } catch {
+            try mainSession.send(data, toPeers: mainSession.connectedPeers, with: .reliable)
+            } catch {
             print("error sending data to peers: \(error.localizedDescription)")
         }
     }
@@ -96,16 +111,14 @@ class MultipeerNetworkSessionViewModel : NSObject {
     func leaveGame() {
         if isServer {
             stopAdvertising()
-            //Disconnect all other players
         } else {
-            hostSession.disconnect()
+            mainSession.disconnect()
             startBrowsing()
         }
     }
     
     // MARK: - Advertising functions
     func startAdvertising() {
-        serviceBrowser.stopBrowsingForPeers()
         serviceAdvertiser.startAdvertisingPeer()
     }
     
@@ -114,8 +127,6 @@ class MultipeerNetworkSessionViewModel : NSObject {
     }
     
     func startBrowsing() {
-        serviceAdvertiser.stopAdvertisingPeer()
-
         serviceBrowser.startBrowsingForPeers()
     }
     
@@ -129,37 +140,27 @@ class MultipeerNetworkSessionViewModel : NSObject {
             return
         }
         
-        serviceBrowser.invitePeer(game.host.peerID, to: hostSession, withContext: nil, timeout: Constants.ConnectionTimeout)
+        serviceBrowser.invitePeer(game.host.peerID, to: mainSession, withContext: nil, timeout: Constants.ConnectionTimeout)
     }
     
-    func isMyTurn(currentPlayerTurn : GamePiece) -> Bool {
-        if currentPlayers.count < maxPeers || currentPlayerTurn == myGamePiece {
-            return true
-        } else {
-            return false
-        }
-    }
 }
 
+// MARK: - MCSession Delegate
 extension MultipeerNetworkSessionViewModel : MCSessionDelegate {
     
     func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
-        
         let player = Player(peerID: peerID)
         
         switch state {
         case .connected :
-            currentPlayers.insert(player)
             delegate?.networkSession(joining: player)
         case .connecting :
             break
         case .notConnected :
-            currentPlayers.remove(player)
             delegate?.networkSession(leaving: player)
         }
         
-
-        if currentPlayers.count >= maxPeers {
+        if mainSession.connectedPeers.count >= maxPeers {
             stopAdvertising()
             stopBrowsing()
         } else {
@@ -169,29 +170,25 @@ extension MultipeerNetworkSessionViewModel : MCSessionDelegate {
     }
     
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
-                
-        guard peerID != UserDefaults.standard.myself.peerID else {
-            return
+        
+        if let gameData = try? jsonDecoder.decode(GameData.self, from: data) {
+            delegate?.networkSession(received: gameData)
         }
         
-        if let loadedWorldState = try? NSKeyedUnarchiver.unarchivedObject(ofClass: WorldState.self, from: data) {
-            
-            let configuration = ARWorldTrackingConfiguration()
-            configuration.planeDetection = .horizontal
-            configuration.initialWorldMap = loadedWorldState?.currentWorldMap
-            delegate?.networkSession(received: configuration)
-            delegate?.networkSession(received: loadedWorldState!.gameBoard)
-            delegate?.networkSession(received: loadedWorldState!.currentGameState)
+        if let gameBoardState = try? jsonDecoder.decode(GameBoardState.self, from: data) {
+            delegate?.networkSession(received: gameBoardState)
         }
+        
         if let worldMap = try? NSKeyedUnarchiver.unarchivedObject(ofClass: ARWorldMap.self, from: data) {
-            
             let configuration = ARWorldTrackingConfiguration()
             configuration.planeDetection = .horizontal
             configuration.initialWorldMap = worldMap
             delegate?.networkSession(received: configuration)
-            
-        } else if let playerMove = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NetworkPlayerMove.self, from: data) {
-            delegate?.networkSession(received: playerMove!)
+        }
+        
+        if let playerMove = try? jsonDecoder.decode(PlayerMove.self, from: data) {
+            isMyTurn = true
+            delegate?.networkSession(received: playerMove)
         } 
     }
     
@@ -208,26 +205,27 @@ extension MultipeerNetworkSessionViewModel : MCSessionDelegate {
     }
 }
 
+// MARK: - MCNearbyService Advertiser Delegate
 extension MultipeerNetworkSessionViewModel : MCNearbyServiceAdvertiserDelegate {
     
+    //The host will begin advertising, the host will "join" the other player's session
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
-                
-        if currentPlayers.count >= 2 {
+        
+        if mainSession.connectedPeers.count >= 2 {
             invitationHandler(false, nil)
         } else {
-            invitationHandler(true, hostSession)
+            invitationHandler(true,mainSession)
         }
         
     }
 }
 
+// MARK: - MCNearbyService Browser Delegate
+
+//Found a host, we invite the host to join our session
 extension MultipeerNetworkSessionViewModel : MCNearbyServiceBrowserDelegate {
     
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
-        
-        guard peerID != myself.peerID else {
-            return
-        }
         
         let player = Player(peerID: peerID)
         
@@ -237,7 +235,13 @@ extension MultipeerNetworkSessionViewModel : MCNearbyServiceBrowserDelegate {
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        // TODO: update the label to show that another user has left 
+        let gameToRemove = games.first {
+            $0.host.peerID == peerID
+        }
+        
+        games = games.filter {
+            $0 != gameToRemove
+        }
     }
     
     

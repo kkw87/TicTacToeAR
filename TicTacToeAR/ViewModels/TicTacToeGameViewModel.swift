@@ -14,15 +14,6 @@ protocol TicTacToeGameViewModelDelegate {
     func presentGameEndingScreenWith(titleMessage : String, bodyMessage : String, completion : @escaping () -> Void)
     func clearPlacingNodesForGameStart()
     func resetViewsForNewGame()
-    func updateGameBoardWithPlayerMovement(withGamePiece : GamePiece)
-    
-}
-
-enum GameState : String, Codable {
-    case PlacingBoard = "Click on the grid to place the board"
-    case InProgress = "Game in progress"
-    case GameOver = "Would you like to reset the game?"
-    case FindingBoardLocation = "Find a flat surface to place the board"
 }
 
 class TicTacToeGameViewModel {
@@ -46,9 +37,9 @@ class TicTacToeGameViewModel {
     var boardPlaced = false {
         didSet {
             if boardPlaced {
-                currentGameState = .InProgress
+                currentGameState = BoardPlacementState.InProgress
             } else {
-                currentGameState = .FindingBoardLocation
+                currentGameState = BoardPlacementState.FindingBoardLocation
             }
         }
     }
@@ -56,32 +47,33 @@ class TicTacToeGameViewModel {
     var boardPlaneFound = false {
         didSet {
             if boardPlaneFound {
-                currentGameState = .PlacingBoard
+                currentGameState = BoardPlacementState.PlacingBoard
             }
         }
     }
     
-    
-    private(set) var currentGameState : GameState {
+    // TODO: - CONVERT GAMESTATE TO A STRING OR DICTIONARY OR CONSTANTS!!!
+    private(set) var currentGameState : String {
         didSet {
             switch currentGameState {
-            case .FindingBoardLocation :
-                delegate?.updateGameWith(statusText: currentGameState.rawValue)
-            case .InProgress :
+            case BoardPlacementState.FindingBoardLocation :
+                delegate?.updateGameWith(statusText: BoardPlacementState.FindingBoardLocation)
+            case BoardPlacementState.InProgress :
                 delegate?.clearPlacingNodesForGameStart()
-                delegate?.updateGameWith(statusText: currentGameState.rawValue)
-            case .PlacingBoard :
-                delegate?.updateGameWith(statusText: currentGameState.rawValue)
-            case .GameOver :
+                delegate?.updateGameWith(statusText: playerTurnMessage)
+            case BoardPlacementState.PlacingBoard :
+                delegate?.updateGameWith(statusText: BoardPlacementState.PlacingBoard)
+            case BoardPlacementState.GameOver :
                 
                 if let gameOverMessage = gameEndingMessage {
                     
                     delegate?.presentGameEndingScreenWith(titleMessage: gameOverMessage.titleMessage, bodyMessage: gameOverMessage.bodyMessage, completion: { [unowned self] in
-                        
                         self.resetGame()
                     })
                     
                 }
+            default :
+               currentGameState = BoardPlacementState.FindingBoardLocation
             }
         }
     }
@@ -89,7 +81,7 @@ class TicTacToeGameViewModel {
     // MARK: - Init
     init(ticTacToe : TicTacToe) {
         self.ticTacToeGame = ticTacToe
-        self.currentGameState = .PlacingBoard
+        self.currentGameState = BoardPlacementState.PlacingBoard
     }
     
     
@@ -97,14 +89,14 @@ class TicTacToeGameViewModel {
     
     var delegate : TicTacToeGameViewModelDelegate?
     
-    var currentPlayer : GamePiece {
+    var currentPlayer : String {
         return ticTacToeGame.currentPlayerTurn
     }
     
     var playerTurnMessage : String {
         
         switch ticTacToeGame.currentPlayerTurn {
-        case .O :
+        case GamePiece.O :
             return StringLiterals.OPlayerTurnMessage
         default :
             return StringLiterals.XPlayerTurnMessage
@@ -123,7 +115,7 @@ class TicTacToeGameViewModel {
  
         if ticTacToeGame.gameWon {
             switch ticTacToeGame.currentPlayerTurn {
-            case .X :
+            case GamePiece.X :
                 return (StringLiterals.OPlayerVictoryMessage, StringLiterals.GameDrawBodyMessage)
             default :
                 return (StringLiterals.XPlayerVictoryMessage, StringLiterals.GameDrawBodyMessage)
@@ -134,21 +126,20 @@ class TicTacToeGameViewModel {
     }
     
     // MARK: - Game move functions
-    func player(madeMove : PlayerMove) {
+    func playerMadeMoveWith(move : PlayerMove) -> Bool {
         
-        guard ticTacToeGame.makeMove(atPosition: (madeMove.playerMoveRow, madeMove.playerMoveColumn)) else {
-            return
+        guard ticTacToeGame.makeMove(atPosition: (move.row, move.column)) else {
+            return false
         }
         
-        delegate?.updateGameBoardWithPlayerMovement(withGamePiece: ticTacToeGame.currentPlayerTurn.oppositePiece)
-        
         if let _ = gameEndingMessage {
-            currentGameState = .GameOver
+            currentGameState = BoardPlacementState.GameOver
         } else {
             
             delegate?.updateGameWith(statusText: playerTurnMessage)
             
         }
+        return true 
     }
     
     func resetGame() {
@@ -159,20 +150,18 @@ class TicTacToeGameViewModel {
     }
     
     // MARK: - Game state functions
-    func loadGameStateFrom(existingGame : TicTacToe) {
-        ticTacToeGame = existingGame
-    }
     
-    func getGameState() -> CurrentGameData {
-        let savedGameState = CurrentGameData(gameState: currentGameState, gameModel: ticTacToeGame, boardPlaced: boardPlaced, planeFound: boardPlaneFound)
+    func getGameState() -> GameData {
+        let savedGameState = GameData(currentGameState : currentGameState, currentGame : ticTacToeGame, boardPlaced : boardPlaced, boardPlaneFound : boardPlaneFound)
         return savedGameState
     }
     
-    func load(savedGameState : CurrentGameData) {
+    func load(savedGameState : GameData) {
+
         ticTacToeGame = savedGameState.currentGame
-        currentGameState = savedGameState.gameState
         boardPlaced = savedGameState.boardPlaced
         boardPlaneFound = savedGameState.boardPlaneFound
+        currentGameState = savedGameState.currentGameState
     }
     
 }
