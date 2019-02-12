@@ -8,8 +8,11 @@ Key Frameworks used : Multipeer Connectivity, ARKit, SceneKit
 
 ## Project Screen Shot(s)
  
-![alt text](https://ibb.co/1ZFnqZT)
-
+![alt text](https://i.ibb.co/MnFhVn7/IMG-1153.png)
+![alt text](https://i.ibb.co/tbX2XRK/Screen-Shot-2019-02-12-at-4-49-49-PM.png)
+![alt text](https://i.ibb.co/VDG7C50/IMG-1157.png)
+![alt text](https://i.ibb.co/pjb1ycP/IMG-1155-2.png)
+![alt text](https://i.ibb.co/xDmKRzj/IMG-1156.png)
 
 The scope of this project was to gain familiarity with Apple’s ARKit as well as experimenting with multiplayer and data sharing between local devices using Apple’s Multipeer connectivity framework. The main goal of this project was to understand how ARKit could potentially work together with ARKit to make a multiplayer experience following Apple’s Swiftshot example. 
 
