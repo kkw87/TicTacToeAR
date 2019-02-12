@@ -144,10 +144,9 @@ class TicTacToeViewController: UIViewController, ARSCNViewDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // TODO: - REENABLE AR WORLD TRACKING
-        //        guard ARWorldTrackingConfiguration.isSupported else {
-        //            fatalError("ARKit is not available on this device.")
-        //        }
+                guard ARWorldTrackingConfiguration.isSupported else {
+                    fatalError("ARKit is not available on this device.")
+                }
         
         // Create a session configuration
         let configuration = ARWorldTrackingConfiguration()

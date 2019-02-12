@@ -9,6 +9,7 @@
 import Foundation
 import MultipeerConnectivity
 
+//Structure used to encapsulate a player move in order to send through the network.
 struct PlayerMove : Codable, CustomStringConvertible {
     
     let row : Int

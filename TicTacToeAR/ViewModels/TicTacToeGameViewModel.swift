@@ -21,11 +21,11 @@ class TicTacToeGameViewModel {
     // MARK: - Constants
     struct StringLiterals {
         
-        static let XPlayerTurnMessage = "X player's turn"
-        static let OPlayerTurnMessage = "O player's turn"
+        static let XPlayerTurnMessage = "\(GamePiece.X)'s turn"
+        static let OPlayerTurnMessage = "\(GamePiece.O)'s turn"
         
-        static let XPlayerVictoryMessage = "X Won!"
-        static let OPlayerVictoryMessage = "O Won!"
+        static let XPlayerVictoryMessage = "\(GamePiece.X) Won!"
+        static let OPlayerVictoryMessage = "\(GamePiece.O) Won!"
         
         static let GameDrawTitleMessage = "It's a Draw!"
         static let GameDrawBodyMessage = "Would you like to reset the game?"
@@ -52,7 +52,6 @@ class TicTacToeGameViewModel {
         }
     }
     
-    // TODO: - CONVERT GAMESTATE TO A STRING OR DICTIONARY OR CONSTANTS!!!
     private(set) var currentGameState : String {
         didSet {
             switch currentGameState {

@@ -8,6 +8,7 @@
 
 import Foundation
 
+//A structure used to gather the information of a grid node (a patch of grass that will contain the symbol on it) to send to the other device through MPC
 struct GridNodeState : Codable {
     let nodeRow : Int
     let nodeColumn : Int

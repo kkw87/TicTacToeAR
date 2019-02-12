@@ -8,6 +8,8 @@
 
 import UIKit
 
+//Structure used to save the current state of the game itself, as well as variables from the view model.
+//The structure is used to send game data to a joining device 
 struct GameData : Codable {
     let currentGameState : String
     let currentGame : TicTacToe

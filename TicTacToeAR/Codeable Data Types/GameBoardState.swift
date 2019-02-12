@@ -8,6 +8,7 @@
 
 import Foundation
 
+//Data structure used to mark the location of the game board to send to other user
 struct GameBoardState : Codable {
     let boardX : Float
     let boardY : Float

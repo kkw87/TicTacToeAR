@@ -9,7 +9,7 @@
 import Foundation
 
 struct GamePiece {
-    static let X = "X"
-    static let O = "O"
+    static let X = "Patrick"
+    static let O = "Spongebob"
     static let Empty = "Empty"
 }
