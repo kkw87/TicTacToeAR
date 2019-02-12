@@ -7,12 +7,8 @@ An AR application that Is used to play a simple game of tic tac toe in AR with a
 Key Frameworks used : Multipeer Connectivity, ARKit, SceneKit 
 
 ## Project Screen Shot(s)
-
-#### Example:   
-
-[ PRETEND SCREEN SHOT IS HERE ]
-
-[ PRETEND OTHER SCREEN SHOT IS HERE ]
+ 
+![alt text](https://ibb.co/1ZFnqZT)
 
 
 The scope of this project was to gain familiarity with Apple’s ARKit as well as experimenting with multiplayer and data sharing between local devices using Apple’s Multipeer connectivity framework. The main goal of this project was to understand how ARKit could potentially work together with ARKit to make a multiplayer experience following Apple’s Swiftshot example. 
